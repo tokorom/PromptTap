@@ -64,6 +64,8 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    @Published var historyEditingMode: Bool = false
+
     private static let hotkeyKey = "hotkeyTrigger"
     private static let vimKeyBindingsKey = "usesVimKeyBindings"
     private static let historyLimitKey = "historyLimit"

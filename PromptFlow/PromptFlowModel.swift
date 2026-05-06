@@ -206,6 +206,12 @@ final class PromptFlowModel: ObservableObject {
         }
     }
 
+    func deleteHistoryItem(_ entry: PromptHistory) {
+        if let index = history.firstIndex(where: { $0.id == entry.id }) {
+            deleteHistory(at: IndexSet(integer: index))
+        }
+    }
+
     private func shrinkHistory(to limit: Int) {
         if history.count > limit {
             history = Array(history.prefix(limit))

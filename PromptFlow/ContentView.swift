@@ -10,43 +10,11 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var model: PromptFlowModel
     @EnvironmentObject private var settings: AppSettings
-    @State private var historyEditingMode: Bool = true
 
     var body: some View {
         VStack(spacing: 0) {
             NavigationSplitView {
-                List(selection: $model.selection) {
-                    Section("Current") {
-                        Label("Current Prompt", systemImage: "text.alignleft")
-                            .tag(SidebarSelection.current)
-                    }
-
-                    Section {
-                        ForEach(model.history) { entry in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(entry.text)
-                                    .lineLimit(2)
-                                    .font(.subheadline)
-                                Text(entry.date, style: .date)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .tag(SidebarSelection.history(entry.id))
-                        }
-                    } header: {
-                        HStack {
-                            Text("History")
-                            Spacer()
-                            Button {
-                                historyEditingMode = true
-                            } label: {
-                                Image(systemName: "trash")
-                                    .font(.caption2)
-                            }
-                        }
-                    }
-                }
-                .navigationSplitViewColumnWidth(min: 180, ideal: 220)
+                sidebar
             } detail: {
                 editorPane
             }
@@ -56,6 +24,42 @@ struct ContentView: View {
             bottomToolbar
         }
         .frame(minWidth: 760, minHeight: 480)
+    }
+
+    private var sidebar: some View {
+        List(selection: $model.selection) {
+            Section("Current") {
+                Label("Current Prompt", systemImage: "text.alignleft")
+                    .tag(SidebarSelection.current)
+            }
+
+            Section {
+                ForEach(model.history) { entry in
+                    HistoryRow(
+                        entry: entry,
+                        isEditing: settings.historyEditingMode,
+                        onDelete: {
+                            model.deleteHistoryItem(entry)
+                        }
+                    )
+                    .tag(SidebarSelection.history(entry.id))
+                }
+            } header: {
+                HStack {
+                    Text("History")
+                    Spacer()
+                    Button {
+                        settings.historyEditingMode.toggle()
+                    } label: {
+                        Image(systemName: settings.historyEditingMode ? "checkmark.circle" : "pencil.circle")
+                            .foregroundStyle(settings.historyEditingMode ? Color.accentColor : Color.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(settings.historyEditingMode ? "Done" : "Edit History")
+                }
+            }
+        }
+        .navigationSplitViewColumnWidth(min: 180, ideal: 220)
     }
 
     private var editorPane: some View {
@@ -159,5 +163,35 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
         .background(.bar)
+    }
+}
+
+struct HistoryRow: View {
+    let entry: PromptHistory
+    let isEditing: Bool
+    let onDelete: () -> Void
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.text)
+                    .lineLimit(2)
+                    .font(.subheadline)
+                Text(entry.date, style: .date)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            if isEditing {
+                Spacer()
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Image(systemName: "trash")
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
