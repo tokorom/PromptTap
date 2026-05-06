@@ -87,6 +87,11 @@ final class PromptFlowModel: ObservableObject {
     }
 
     func openFromShortcut() {
+        if !promptText.isEmpty && !history.contains(where: { $0.text == promptText }) {
+            addToHistory(promptText)
+        }
+        promptText = ""
+
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)
         NSApp.activate(ignoringOtherApps: true)
         for window in NSApp.windows {
