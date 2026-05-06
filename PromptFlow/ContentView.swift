@@ -11,12 +11,10 @@ struct ContentView: View {
     @EnvironmentObject private var model: PromptFlowModel
     @EnvironmentObject private var settings: AppSettings
 
-    @State private var selectedHistoryID: UUID?
-
     var body: some View {
         VStack(spacing: 0) {
             NavigationSplitView {
-                List(selection: $selectedHistoryID) {
+                List(selection: $model.selectedHistoryID) {
                     Section("Current") {
                         Label("Current Prompt", systemImage: "text.alignleft")
                             .tag(nil as UUID?)
@@ -37,11 +35,6 @@ struct ContentView: View {
                     }
                 }
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220)
-                .onChange(of: selectedHistoryID) { _, id in
-                    if let id, let entry = model.history.first(where: { $0.id == id }) {
-                        model.promptText = entry.text
-                    }
-                }
             } detail: {
                 editorPane
             }
@@ -56,7 +49,7 @@ struct ContentView: View {
     private var editorPane: some View {
         VStack(spacing: 0) {
             HStack {
-                if let selectedHistoryID, let entry = model.history.first(where: { $0.id == selectedHistoryID }) {
+                if let selectedHistoryID = model.selectedHistoryID, let entry = model.history.first(where: { $0.id == selectedHistoryID }) {
                     Text(entry.date, style: .date)
                         .font(.headline)
                 } else {

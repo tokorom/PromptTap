@@ -25,8 +25,10 @@ struct PromptHistory: Identifiable, Codable, Hashable {
 @MainActor
 final class PromptFlowModel: ObservableObject {
     @Published var promptText = ""
+    @Published var currentPromptBuffer = ""
     @Published var isEditorSelectionEmpty = true
     @Published private(set) var focusRequestID = 0
+    @Published var selectedHistoryID: UUID?
     @Published private(set) var previousApplicationName: String?
     @Published private(set) var targetHistory: [NSRunningApplication] = []
     @Published private(set) var history: [PromptHistory] = []
@@ -36,6 +38,10 @@ final class PromptFlowModel: ObservableObject {
     private var previousApplication: NSRunningApplication?
     private var settings: AppSettings?
     private var cancellables = Set<AnyCancellable>()
+
+    var isCurrentPromptSelected: Bool {
+        selectedHistoryID == nil
+    }
 
     var canSubmit: Bool {
         previousApplication != nil && !promptText.isEmpty
@@ -51,6 +57,26 @@ final class PromptFlowModel: ObservableObject {
 
     init() {
         loadHistory()
+
+        $promptText
+            .sink { [weak self] text in
+                guard let self, self.selectedHistoryID == nil else { return }
+                self.currentPromptBuffer = text
+            }
+            .store(in: &cancellables)
+
+        $selectedHistoryID
+            .sink { [weak self] id in
+                guard let self else { return }
+                if let id {
+                    if let entry = self.history.first(where: { $0.id == id }) {
+                        self.promptText = entry.text
+                    }
+                } else {
+                    self.promptText = self.currentPromptBuffer
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func setup(settings: AppSettings) {
@@ -87,9 +113,11 @@ final class PromptFlowModel: ObservableObject {
     }
 
     func openFromShortcut() {
-        if !promptText.isEmpty && !history.contains(where: { $0.text == promptText }) {
-            addToHistory(promptText)
+        if !currentPromptBuffer.isEmpty && !history.contains(where: { $0.text == currentPromptBuffer }) {
+            addToHistory(currentPromptBuffer)
         }
+        currentPromptBuffer = ""
+        selectedHistoryID = nil
         promptText = ""
 
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)
