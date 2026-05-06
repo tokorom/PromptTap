@@ -51,7 +51,7 @@ struct ContentView: View {
                     Button {
                         settings.historyEditingMode.toggle()
                     } label: {
-                        Image(systemName: settings.historyEditingMode ? "checkmark.circle" : "pencil.circle")
+                        Image(systemName: settings.historyEditingMode ? "checkmark" : "trash")
                             .foregroundStyle(settings.historyEditingMode ? Color.accentColor : Color.secondary)
                     }
                     .buttonStyle(.plain)
