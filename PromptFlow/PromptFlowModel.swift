@@ -66,7 +66,9 @@ final class PromptFlowModel: ObservableObject {
         $promptText
             .sink { [weak self] text in
                 guard let self, self.selection == .current else { return }
-                self.currentPromptBuffer = text
+                if self.currentPromptBuffer != text {
+                    self.currentPromptBuffer = text
+                }
             }
             .store(in: &cancellables)
 
@@ -75,10 +77,14 @@ final class PromptFlowModel: ObservableObject {
                 guard let self else { return }
                 switch selection {
                 case .current:
-                    self.promptText = self.currentPromptBuffer
+                    if self.promptText != self.currentPromptBuffer {
+                        self.promptText = self.currentPromptBuffer
+                    }
                 case .history(let id):
                     if let entry = self.history.first(where: { $0.id == id }) {
-                        self.promptText = entry.text
+                        if self.promptText != entry.text {
+                            self.promptText = entry.text
+                        }
                     }
                 }
             }
@@ -119,12 +125,18 @@ final class PromptFlowModel: ObservableObject {
     }
 
     func openFromShortcut() {
+        if NSApp.isActive {
+            returnToTarget()
+            return
+        }
+
         if !currentPromptBuffer.isEmpty && !history.contains(where: { $0.text == currentPromptBuffer }) {
             addToHistory(currentPromptBuffer)
+            currentPromptBuffer = ""
         }
-        currentPromptBuffer = ""
+        
         selection = .current
-        promptText = ""
+        promptText = currentPromptBuffer
 
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)
         NSApp.activate(ignoringOtherApps: true)
@@ -132,6 +144,10 @@ final class PromptFlowModel: ObservableObject {
             window.makeKeyAndOrderFront(nil)
         }
         focusEditor()
+    }
+
+    func returnToTarget() {
+        previousApplication?.activate(options: [.activateAllWindows])
     }
 
     func focusEditor() {
