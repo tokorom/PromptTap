@@ -42,7 +42,10 @@ final class PromptFlowModel: ObservableObject {
 
     func openFromShortcut() {
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
+        for window in NSApp.windows {
+            window.makeKeyAndOrderFront(nil)
+        }
         focusEditor()
     }
 
