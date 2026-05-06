@@ -20,7 +20,7 @@ final class PromptFlowModel: ObservableObject {
     private weak var previousApplication: NSRunningApplication?
 
     var canSubmit: Bool {
-        previousApplication != nil
+        previousApplicationName != nil
     }
 
     var statusText: String {
