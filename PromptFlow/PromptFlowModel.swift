@@ -22,13 +22,18 @@ struct PromptHistory: Identifiable, Codable, Hashable {
     }
 }
 
+enum SidebarSelection: Hashable {
+    case current
+    case history(UUID)
+}
+
 @MainActor
 final class PromptFlowModel: ObservableObject {
     @Published var promptText = ""
     @Published var currentPromptBuffer = ""
     @Published var isEditorSelectionEmpty = true
     @Published private(set) var focusRequestID = 0
-    @Published var selectedHistoryID: UUID?
+    @Published var selection: SidebarSelection = .current
     @Published private(set) var previousApplicationName: String?
     @Published private(set) var targetHistory: [NSRunningApplication] = []
     @Published private(set) var history: [PromptHistory] = []
@@ -40,7 +45,7 @@ final class PromptFlowModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     var isCurrentPromptSelected: Bool {
-        selectedHistoryID == nil
+        selection == .current
     }
 
     var canSubmit: Bool {
@@ -60,20 +65,21 @@ final class PromptFlowModel: ObservableObject {
 
         $promptText
             .sink { [weak self] text in
-                guard let self, self.selectedHistoryID == nil else { return }
+                guard let self, self.selection == .current else { return }
                 self.currentPromptBuffer = text
             }
             .store(in: &cancellables)
 
-        $selectedHistoryID
-            .sink { [weak self] id in
+        $selection
+            .sink { [weak self] selection in
                 guard let self else { return }
-                if let id {
+                switch selection {
+                case .current:
+                    self.promptText = self.currentPromptBuffer
+                case .history(let id):
                     if let entry = self.history.first(where: { $0.id == id }) {
                         self.promptText = entry.text
                     }
-                } else {
-                    self.promptText = self.currentPromptBuffer
                 }
             }
             .store(in: &cancellables)
@@ -117,7 +123,7 @@ final class PromptFlowModel: ObservableObject {
             addToHistory(currentPromptBuffer)
         }
         currentPromptBuffer = ""
-        selectedHistoryID = nil
+        selection = .current
         promptText = ""
 
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)

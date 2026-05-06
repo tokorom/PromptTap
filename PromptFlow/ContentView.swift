@@ -14,10 +14,10 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             NavigationSplitView {
-                List(selection: $model.selectedHistoryID) {
+                List(selection: $model.selection) {
                     Section("Current") {
                         Label("Current Prompt", systemImage: "text.alignleft")
-                            .tag(nil as UUID?)
+                            .tag(SidebarSelection.current)
                     }
 
                     Section("History") {
@@ -30,7 +30,7 @@ struct ContentView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
-                            .tag(entry.id as UUID?)
+                            .tag(SidebarSelection.history(entry.id))
                         }
                     }
                 }
@@ -49,7 +49,7 @@ struct ContentView: View {
     private var editorPane: some View {
         VStack(spacing: 0) {
             HStack {
-                if let selectedHistoryID = model.selectedHistoryID, let entry = model.history.first(where: { $0.id == selectedHistoryID }) {
+                if case .history(let id) = model.selection, let entry = model.history.first(where: { $0.id == id }) {
                     Text(entry.date, style: .date)
                         .font(.headline)
                 } else {
