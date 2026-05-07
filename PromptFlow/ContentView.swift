@@ -48,7 +48,7 @@ struct ContentView: View {
                     .lineLimit(2)
             }
         }
-        .onChange(of: model.focusListRequestID) { _ in
+        .onChange(of: model.focusListRequestID) {
             isListFocused = true
         }
         .background {
