@@ -59,7 +59,8 @@ struct WebPromptEditor: NSViewRepresentable {
             if let window = webView.window {
                 window.makeFirstResponder(webView)
             }
-            context.coordinator.callJavaScript("window.promptFlowEditor?.focusEditor();")
+            let enterInsertMode = focusRequestID > 1000
+            context.coordinator.callJavaScript("window.promptFlowEditor?.focusEditor(\(enterInsertMode));")
         }
     }
 }
@@ -80,7 +81,8 @@ extension WebPromptEditor {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             callJavaScriptFunction("setText", argument: parent.text)
             callJavaScriptFunction("setVim", argument: parent.usesVimKeyBindings)
-            callJavaScript("window.promptFlowEditor?.focusEditor();")
+            let enterInsertMode = parent.focusRequestID > 1000
+            callJavaScript("window.promptFlowEditor?.focusEditor(\(enterInsertMode));")
         }
 
         nonisolated func userContentController(
@@ -211,6 +213,7 @@ private extension WebPromptEditor {
         let pendingText = "";
         let pendingVim = false;
         let pendingFocus = false;
+        let pendingVimInsert = false;
         let appliedVim = null;
 
         const hasSelection = () => {
@@ -269,6 +272,24 @@ private extension WebPromptEditor {
             if (pendingFocus) {
               view.focus();
               pendingFocus = false;
+              if (pendingVimInsert && appliedVim) {
+                setTimeout(() => {
+                  const cm = view.cm;
+                  if (cm && cm.handleKey) {
+                    cm.handleKey("i");
+                  } else {
+                    view.dom.dispatchEvent(new KeyboardEvent("keydown", { 
+                      key: "i", 
+                      keyCode: 73, 
+                      code: "KeyI", 
+                      which: 73, 
+                      bubbles: true, 
+                      cancelable: true 
+                    }));
+                  }
+                }, 500);
+                pendingVimInsert = false;
+              }
             }
           } else if (textarea) {
             if (textarea.value !== pendingText) {
@@ -395,8 +416,11 @@ private extension WebPromptEditor {
             pendingVim = enabled;
             applyState();
           },
-          focusEditor() {
+          focusEditor(enterVimInsertMode) {
             pendingFocus = true;
+            if (enterVimInsertMode) {
+              pendingVimInsert = true;
+            }
             applyState();
             notifySelection();
           }
@@ -409,7 +433,7 @@ private extension WebPromptEditor {
           setupFallbackEditor();
         }
 
-        window.promptFlowEditor.focusEditor();
+        window.promptFlowEditor.focusEditor(pendingVim);
       </script>
     </body>
     </html>

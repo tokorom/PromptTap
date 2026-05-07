@@ -161,7 +161,7 @@ final class PromptFlowModel: ObservableObject {
         // Use a slight delay to ensure SwiftUI finished updating the view hierarchy
         // before requesting focus on the WebView.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.focusEditor()
+            self.focusEditor(enterVimInsertMode: true)
         }
     }
 
@@ -169,8 +169,12 @@ final class PromptFlowModel: ObservableObject {
         previousApplication?.activate(options: [.activateAllWindows])
     }
 
-    func focusEditor() {
-        focusRequestID += 1
+    func focusEditor(enterVimInsertMode: Bool = false) {
+        if enterVimInsertMode {
+            focusRequestID = (focusRequestID % 1000) + 1001 // Use 1001+ for insert mode
+        } else {
+            focusRequestID = (focusRequestID % 1000) + 1
+        }
     }
 
     func focusList() {
