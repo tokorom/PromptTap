@@ -10,7 +10,7 @@ build_number_key := "APP_BUILD_NUMBER"
 marketing_version_key := "APP_VERSION"
 
 github_release_script := "./scripts/github_release.zsh"
-github_repo := "spinners-work/VisionWidget"
+github_repo := "tokorom/PromptFlow"
 github_token := "$GITHUB_TOKEN"
 
 build_number = $$(zsh -c "source $(increment_version_script) && get_build_number $(xcconfig) $(build_number_key)")
