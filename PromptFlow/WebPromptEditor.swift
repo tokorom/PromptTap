@@ -30,6 +30,9 @@ struct WebPromptEditor: NSViewRepresentable {
         webView.allowsBackForwardNavigationGestures = false
         webView.loadHTMLString(Self.editorHTML, baseURL: nil)
 
+        // Enable developer tools to help debugging
+        webView.configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
+
         context.coordinator.webView = webView
         context.coordinator.lastKnownText = text
         context.coordinator.lastVimMode = usesVimKeyBindings
@@ -192,6 +195,7 @@ private extension WebPromptEditor {
         let textarea = null;
         let vimCompartment = null;
         let vimExtensionFactory = null;
+        let vimModule = null;
 
         let pendingText = "";
         let pendingVim = false;
@@ -217,19 +221,29 @@ private extension WebPromptEditor {
 
         const installCommandShortcuts = (target) => {
           target.addEventListener("keydown", (event) => {
-            const key = event.key.toLowerCase();
+            const key = event.key;
+            const lowerKey = key.toLowerCase();
 
-            if (event.metaKey && key === "s") {
+            if (event.metaKey && lowerKey === "s") {
               event.preventDefault();
               post({ action: "submit" });
               return;
             }
 
-            if (event.metaKey && key === "c" && !hasSelection()) {
+            if (event.metaKey && lowerKey === "c" && !hasSelection()) {
               event.preventDefault();
               post({ action: "copyAll" });
+              return;
             }
-          });
+
+            // Explicitly handle Escape for Vim mode
+            if (key === "Escape" && pendingVim && view && vimModule) {
+              vimModule.Vim.handleKey(view, '<Esc>');
+              event.preventDefault();
+              event.stopPropagation();
+              return;
+            }
+          }, true); // Use capture phase to catch it early
         };
 
         const applyState = () => {
@@ -264,7 +278,7 @@ private extension WebPromptEditor {
           const viewModule = await import("https://esm.sh/@codemirror/view@6.36.8");
           const commandsModule = await import("https://esm.sh/@codemirror/commands@6.8.1");
           const markdownModule = await import("https://esm.sh/@codemirror/lang-markdown@6.3.3");
-          const vimModule = await import("https://esm.sh/@replit/codemirror-vim@6.2.1");
+          vimModule = await import("https://esm.sh/@replit/codemirror-vim@6.2.1");
 
           const { EditorState, Compartment } = stateModule;
           const { EditorView, keymap, lineNumbers, highlightActiveLine, placeholder } = viewModule;
@@ -306,6 +320,10 @@ private extension WebPromptEditor {
             },
             "&.cm-focused": {
               outline: "none"
+            },
+            ".cm-fat-cursor": {
+              backgroundColor: "CanvasText !important",
+              color: "Canvas !important"
             }
           });
 
