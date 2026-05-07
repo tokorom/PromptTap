@@ -438,7 +438,7 @@ private extension WebPromptEditor {
         }
 
         setTimeout(() => {
-          window.promptFlowEditor.focusEditor(pendingVim);
+          window.promptFlowEditor.focusEditor(false);
         }, 300);
       </script>
     </body>
