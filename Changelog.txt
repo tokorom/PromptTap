@@ -1,1 +1,1 @@
-Makefile test
+dmgをReleasesに含める
