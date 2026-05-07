@@ -11,6 +11,9 @@ struct ContentView: View {
     @EnvironmentObject private var model: PromptFlowModel
     @EnvironmentObject private var settings: AppSettings
 
+    @State private var entryToDelete: PromptHistory?
+    @State private var showingDeleteConfirmation = false
+
     var body: some View {
         VStack(spacing: 0) {
             NavigationSplitView {
@@ -24,6 +27,26 @@ struct ContentView: View {
             bottomToolbar
         }
         .frame(minWidth: 760, minHeight: 480)
+        .confirmationDialog(
+            "Are you sure you want to delete this history item?",
+            isPresented: $showingDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let entry = entryToDelete {
+                    model.deleteHistoryItem(entry)
+                }
+                entryToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                entryToDelete = nil
+            }
+        } message: {
+            if let entry = entryToDelete {
+                Text(entry.text)
+                    .lineLimit(2)
+            }
+        }
     }
 
     private var sidebar: some View {
@@ -39,10 +62,25 @@ struct ContentView: View {
                         entry: entry,
                         isEditing: settings.historyEditingMode,
                         onDelete: {
-                            model.deleteHistoryItem(entry)
+                            entryToDelete = entry
+                            showingDeleteConfirmation = true
                         }
                     )
                     .tag(SidebarSelection.history(entry.id))
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            entryToDelete = entry
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+                .onDelete { offsets in
+                    if let index = offsets.first {
+                        entryToDelete = model.history[index]
+                        showingDeleteConfirmation = true
+                    }
                 }
             } header: {
                 HStack {
