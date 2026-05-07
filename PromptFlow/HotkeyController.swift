@@ -14,6 +14,8 @@ final class HotkeyController {
 
     private var globalMonitor: Any?
     private var localMonitor: Any?
+    private var globalKeyDownMonitor: Any?
+    private var localKeyDownMonitor: Any?
     private var lastPressDate: Date?
     private var wasPressed = false
 
@@ -36,11 +38,24 @@ final class HotkeyController {
                     self?.handle(event)
                 }
             }
+
+            globalKeyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] _ in
+                Task { @MainActor in
+                    self?.reset()
+                }
+            }
         }
 
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
             Task { @MainActor in
                 self?.handle(event)
+            }
+            return event
+        }
+
+        localKeyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            Task { @MainActor in
+                self?.reset()
             }
             return event
         }
@@ -60,8 +75,18 @@ final class HotkeyController {
             NSEvent.removeMonitor(localMonitor)
         }
 
+        if let globalKeyDownMonitor {
+            NSEvent.removeMonitor(globalKeyDownMonitor)
+        }
+
+        if let localKeyDownMonitor {
+            NSEvent.removeMonitor(localKeyDownMonitor)
+        }
+
         globalMonitor = nil
         localMonitor = nil
+        globalKeyDownMonitor = nil
+        localKeyDownMonitor = nil
         reset()
     }
 
