@@ -9,12 +9,13 @@ import SwiftUI
 
 @main
 struct PromptFlowApp: App {
+    @Environment(\.openWindow) private var openWindow
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var model = PromptFlowModel()
     @StateObject private var settings = AppSettings()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView()
                 .environmentObject(model)
                 .environmentObject(settings)
@@ -25,6 +26,12 @@ struct PromptFlowApp: App {
         }
         .commands {
             PromptCommands(model: model)
+        }
+        .onChange(of: model.shouldOpenMainWindow) { newValue in
+            if newValue {
+                openWindow(id: "main")
+                model.shouldOpenMainWindow = false
+            }
         }
 
         Settings {

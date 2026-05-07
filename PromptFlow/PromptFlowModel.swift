@@ -45,6 +45,7 @@ final class PromptFlowModel: ObservableObject {
     @Published private(set) var history: [PromptHistory] = []
     @Published private(set) var isSubmitting = false
     @Published private(set) var isCopying = false
+    @Published var shouldOpenMainWindow = false
 
     private var previousApplication: NSRunningApplication?
     private var settings: AppSettings?
@@ -144,8 +145,11 @@ final class PromptFlowModel: ObservableObject {
         noteActivatedApplication(NSWorkspace.shared.frontmostApplication)
         NSApp.activate(ignoringOtherApps: true)
         
-        for window in NSApp.windows {
-            if window.title != "Settings" {
+        let nonSettingsWindows = NSApp.windows.filter { $0.title != "Settings" && $0.canBecomeKey }
+        if nonSettingsWindows.isEmpty {
+            shouldOpenMainWindow = true
+        } else {
+            for window in nonSettingsWindows {
                 window.makeKeyAndOrderFront(nil)
             }
         }

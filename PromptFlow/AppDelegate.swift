@@ -60,4 +60,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
         }
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            for window in sender.windows {
+                if window.title != "Settings" {
+                    window.makeKeyAndOrderFront(nil)
+                    return false
+                }
+            }
+        }
+        return true
+    }
 }
