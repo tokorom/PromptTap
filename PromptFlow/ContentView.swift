@@ -98,6 +98,13 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewColumnWidth(min: 180, ideal: 220)
+        .onDeleteCommand {
+            if case .history(let id) = model.selection,
+               let entry = model.history.first(where: { $0.id == id }) {
+                entryToDelete = entry
+                showingDeleteConfirmation = true
+            }
+        }
     }
 
     private var editorPane: some View {
