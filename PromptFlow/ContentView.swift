@@ -58,7 +58,7 @@ struct ContentView: View {
             }
             .keyboardShortcut("l", modifiers: .command)
             .opacity(0)
-            
+
             Button("") {
                 model.focusEditor()
             }
@@ -93,7 +93,7 @@ struct ContentView: View {
                                 }
                                 return nil
                             }
-                            
+
                             if !selectedHistory.isEmpty && selectedHistory.contains(where: { $0.id == entry.id }) {
                                 entriesToDelete = Set(selectedHistory)
                             } else {
@@ -113,14 +113,14 @@ struct ContentView: View {
                 HStack {
                     Text("History")
                     Spacer()
-                    Button {
-                        settings.historyEditingMode.toggle()
-                    } label: {
-                        Image(systemName: settings.historyEditingMode ? "checkmark" : "trash")
-                            .foregroundStyle(settings.historyEditingMode ? Color.accentColor : Color.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(settings.historyEditingMode ? "Done" : "Edit History")
+                    // Button {
+                    //     settings.historyEditingMode.toggle()
+                    // } label: {
+                    //     Image(systemName: settings.historyEditingMode ? "checkmark" : "trash")
+                    //         .foregroundStyle(settings.historyEditingMode ? Color.accentColor : Color.secondary)
+                    // }
+                    // .buttonStyle(.plain)
+                    // .help(settings.historyEditingMode ? "Done" : "Edit History")
                 }
             }
         }
