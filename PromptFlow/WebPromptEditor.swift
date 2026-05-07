@@ -278,16 +278,20 @@ private extension WebPromptEditor {
                   if (cm && cm.handleKey) {
                     cm.handleKey("i");
                   } else {
-                    view.dom.dispatchEvent(new KeyboardEvent("keydown", { 
-                      key: "i", 
-                      keyCode: 73, 
-                      code: "KeyI", 
-                      which: 73, 
-                      bubbles: true, 
-                      cancelable: true 
-                    }));
+                    const target = view.contentDOM || view.dom;
+                    if (target) {
+                      target.focus();
+                      target.dispatchEvent(new KeyboardEvent("keydown", { 
+                        key: "i", 
+                        keyCode: 73, 
+                        code: "KeyI", 
+                        which: 73, 
+                        bubbles: true, 
+                        cancelable: true 
+                      }));
+                    }
                   }
-                }, 500);
+                }, 600);
                 pendingVimInsert = false;
               }
             }
@@ -433,7 +437,9 @@ private extension WebPromptEditor {
           setupFallbackEditor();
         }
 
-        window.promptFlowEditor.focusEditor(pendingVim);
+        setTimeout(() => {
+          window.promptFlowEditor.focusEditor(pendingVim);
+        }, 300);
       </script>
     </body>
     </html>
