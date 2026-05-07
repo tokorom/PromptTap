@@ -94,14 +94,24 @@ struct ContentView: View {
                     )
                     .tag(SidebarSelection.history(entry.id))
                     .contextMenu {
-                        Button(role: .destructive) {
-                            let selectedHistory = model.selection.compactMap { sel -> PromptHistory? in
-                                if case .history(let id) = sel {
-                                    return model.history.first(where: { $0.id == id })
-                                }
-                                return nil
+                        let selectedHistory = model.selection.compactMap { sel -> PromptHistory? in
+                            if case .history(let id) = sel {
+                                return model.history.first(where: { $0.id == id })
+                            }
+                            return nil
+                        }
+
+                        if selectedHistory.count > 1 && selectedHistory.contains(where: { $0.id == entry.id }) {
+                            Button {
+                                model.mergeHistoryItems(selectedHistory)
+                            } label: {
+                                Label("Merge", systemImage: "plus.square.fill.on.square.fill")
                             }
 
+                            Divider()
+                        }
+
+                        Button(role: .destructive) {
                             if !selectedHistory.isEmpty && selectedHistory.contains(where: { $0.id == entry.id }) {
                                 entriesToDelete = Set(selectedHistory)
                             } else {

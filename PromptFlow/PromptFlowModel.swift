@@ -273,6 +273,29 @@ final class PromptFlowModel: ObservableObject {
         deleteHistoryItems([entry])
     }
 
+    func mergeHistoryItems(_ entries: [PromptHistory]) {
+        guard entries.count > 1 else { return }
+
+        let sortedInDisplayOrder = entries.sorted { a, b in
+            let indexA = history.firstIndex(where: { $0.id == a.id }) ?? Int.max
+            let indexB = history.firstIndex(where: { $0.id == b.id }) ?? Int.max
+            return indexA < indexB
+        }
+
+        let mergedText = sortedInDisplayOrder.map { $0.text }.joined(separator: "\n\n")
+
+        let idsToRemove = Set(entries.map { $0.id })
+        history.removeAll { idsToRemove.contains($0.id) }
+
+        let newEntry = PromptHistory(text: mergedText)
+        history.insert(newEntry, at: 0)
+
+        shrinkHistory(to: settings?.historyLimit ?? 100)
+        saveHistory()
+
+        selection = [.history(newEntry.id)]
+    }
+
     private func shrinkHistory(to limit: Int) {
         if history.count > limit {
             history = Array(history.prefix(limit))
