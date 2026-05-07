@@ -39,6 +39,7 @@ struct ContentView: View {
                 model.deleteHistoryItems(entriesToDelete)
                 entriesToDelete = []
             }
+            .keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {
                 entriesToDelete = []
             }
