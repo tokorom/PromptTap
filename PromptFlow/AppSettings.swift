@@ -8,6 +8,7 @@
 import AppKit
 import Combine
 import Foundation
+import ServiceManagement
 
 enum HotkeyTrigger: String, CaseIterable, Identifiable {
     case doubleShift
@@ -64,19 +65,47 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    @Published var launchAtLogin: Bool {
+        didSet {
+            UserDefaults.standard.set(launchAtLogin, forKey: Self.launchAtLoginKey)
+            updateLaunchAtLogin()
+        }
+    }
+
     @Published var historyEditingMode: Bool = false
 
     private static let hotkeyKey = "hotkeyTrigger"
     private static let vimKeyBindingsKey = "usesVimKeyBindings"
     private static let historyLimitKey = "historyLimit"
+    private static let launchAtLoginKey = "launchAtLogin"
 
     init(userDefaults: UserDefaults = .standard) {
         let rawHotkey = userDefaults.string(forKey: Self.hotkeyKey)
         hotkey = rawHotkey.flatMap(HotkeyTrigger.init(rawValue:)) ?? .doubleShift
         usesVimKeyBindings = userDefaults.bool(forKey: Self.vimKeyBindingsKey)
-        historyLimit = userDefaults.integer(forKey: Self.historyLimitKey)
-        if historyLimit == 0 {
-            historyLimit = 100
+        
+        var limit = userDefaults.integer(forKey: Self.historyLimitKey)
+        if limit == 0 {
+            limit = 100
+        }
+        historyLimit = limit
+        
+        launchAtLogin = userDefaults.bool(forKey: Self.launchAtLoginKey)
+    }
+
+    private func updateLaunchAtLogin() {
+        let service = SMAppService.mainApp
+        do {
+            if launchAtLogin {
+                if service.status == .enabled {
+                    try? service.unregister()
+                }
+                try service.register()
+            } else {
+                try service.unregister()
+            }
+        } catch {
+            print("Failed to update launch at login: \(error)")
         }
     }
 }

@@ -26,6 +26,7 @@ struct SettingsView: View {
 
             Section("Editor") {
                 Toggle("Vim key bindings", isOn: $settings.usesVimKeyBindings)
+                Toggle("Launch at login", isOn: $settings.launchAtLogin)
             }
 
             Section("History") {

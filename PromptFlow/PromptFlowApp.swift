@@ -32,6 +32,23 @@ struct PromptFlowApp: App {
                 .environmentObject(model)
                 .environmentObject(settings)
         }
+
+        MenuBarExtra("PromptFlow", systemImage: "paperplane.fill") {
+            Button("Show PromptFlow") {
+                model.openFromShortcut()
+            }
+            
+            Divider()
+            
+            SettingsLink()
+            
+            Divider()
+            
+            Button("Quit PromptFlow") {
+                NSApp.terminate(nil)
+            }
+            .keyboardShortcut("q", modifiers: .command)
+        }
     }
 }
 
