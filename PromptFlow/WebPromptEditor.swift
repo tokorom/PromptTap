@@ -187,6 +187,15 @@ private extension WebPromptEditor {
           line-height: 1.55;
         }
 
+        .cm-editor.cm-lineWrapping .cm-content {
+          word-break: break-all;
+          overflow-wrap: anywhere;
+        }
+
+        .cm-editor.cm-lineWrapping .cm-scroller {
+          overflow-x: hidden !important;
+        }
+
         .cm-vim-panel {
           border-top: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
           color: GrayText;
