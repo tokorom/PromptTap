@@ -188,6 +188,7 @@ struct ContentView: View {
                 ),
                 isSelectionEmpty: $model.isEditorSelectionEmpty,
                 usesVimKeyBindings: settings.usesVimKeyBindings,
+                lineWrapping: settings.lineWrapping,
                 focusRequestID: model.focusRequestID,
                 onSubmit: model.submitPrompt,
                 onCopyAll: model.copyPrompt

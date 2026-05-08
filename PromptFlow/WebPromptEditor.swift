@@ -13,6 +13,7 @@ struct WebPromptEditor: NSViewRepresentable {
     @Binding var isSelectionEmpty: Bool
 
     let usesVimKeyBindings: Bool
+    let lineWrapping: Bool
     let focusRequestID: Int
     let onSubmit: () -> Void
     let onCopyAll: () -> Void
@@ -36,6 +37,7 @@ struct WebPromptEditor: NSViewRepresentable {
         context.coordinator.webView = webView
         context.coordinator.lastKnownText = text
         context.coordinator.lastVimMode = usesVimKeyBindings
+        context.coordinator.lastLineWrapping = lineWrapping
         context.coordinator.lastFocusRequestID = focusRequestID
 
         return webView
@@ -52,6 +54,11 @@ struct WebPromptEditor: NSViewRepresentable {
         if context.coordinator.lastVimMode != usesVimKeyBindings {
             context.coordinator.lastVimMode = usesVimKeyBindings
             context.coordinator.callJavaScriptFunction("setVim", argument: usesVimKeyBindings)
+        }
+
+        if context.coordinator.lastLineWrapping != lineWrapping {
+            context.coordinator.lastLineWrapping = lineWrapping
+            context.coordinator.callJavaScriptFunction("setLineWrapping", argument: lineWrapping)
         }
 
         if context.coordinator.lastFocusRequestID != focusRequestID {
@@ -72,6 +79,7 @@ extension WebPromptEditor {
         weak var webView: WKWebView?
         var lastKnownText = ""
         var lastVimMode: Bool?
+        var lastLineWrapping: Bool?
         var lastFocusRequestID = 0
 
         init(_ parent: WebPromptEditor) {
@@ -81,6 +89,7 @@ extension WebPromptEditor {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             callJavaScriptFunction("setText", argument: parent.text)
             callJavaScriptFunction("setVim", argument: parent.usesVimKeyBindings)
+            callJavaScriptFunction("setLineWrapping", argument: parent.lineWrapping)
             let enterInsertMode = parent.focusRequestID > 1000
             callJavaScript("window.promptFlowEditor?.focusEditor(\(enterInsertMode));")
         }
@@ -209,12 +218,15 @@ private extension WebPromptEditor {
         let textarea = null;
         let vimCompartment = null;
         let vimExtensionFactory = null;
+        let lineWrappingCompartment = null;
 
         let pendingText = "";
         let pendingVim = false;
+        let pendingLineWrapping = false;
         let pendingFocus = false;
         let pendingVimInsert = false;
         let appliedVim = null;
+        let appliedLineWrapping = null;
 
         const hasSelection = () => {
           if (view) {
@@ -269,6 +281,12 @@ private extension WebPromptEditor {
               });
               appliedVim = pendingVim;
             }
+            if (lineWrappingCompartment && appliedLineWrapping !== pendingLineWrapping) {
+              view.dispatch({
+                effects: lineWrappingCompartment.reconfigure(pendingLineWrapping ? EditorView.lineWrapping : [])
+              });
+              appliedLineWrapping = pendingLineWrapping;
+            }
             if (pendingFocus) {
               view.focus();
               pendingFocus = false;
@@ -298,6 +316,10 @@ private extension WebPromptEditor {
           } else if (textarea) {
             if (textarea.value !== pendingText) {
               textarea.value = pendingText;
+            }
+            if (textarea.style.whiteSpace !== (pendingLineWrapping ? "pre-wrap" : "pre")) {
+                textarea.style.whiteSpace = pendingLineWrapping ? "pre-wrap" : "pre";
+                textarea.style.overflowX = pendingLineWrapping ? "hidden" : "auto";
             }
             if (pendingFocus) {
               textarea.focus();
@@ -331,6 +353,7 @@ private extension WebPromptEditor {
 
           vimCompartment = new Compartment();
           vimExtensionFactory = vim;
+          lineWrappingCompartment = new Compartment();
 
           const updateListener = EditorView.updateListener.of((update) => {
             if (update.docChanged) {
@@ -374,6 +397,7 @@ private extension WebPromptEditor {
             doc: pendingText,
             extensions: [
               vimCompartment.of(pendingVim ? vimExtension() : []),
+              lineWrappingCompartment.of(pendingLineWrapping ? EditorView.lineWrapping : []),
               lineNumbers(),
               history(),
               markdown(),
@@ -392,6 +416,7 @@ private extension WebPromptEditor {
           });
 
           appliedVim = pendingVim;
+          appliedLineWrapping = pendingLineWrapping;
           installCommandShortcuts(view.dom);
           applyState();
         };
@@ -418,6 +443,10 @@ private extension WebPromptEditor {
           },
           setVim(enabled) {
             pendingVim = enabled;
+            applyState();
+          },
+          setLineWrapping(enabled) {
+            pendingLineWrapping = enabled;
             applyState();
           },
           focusEditor(enterVimInsertMode) {

@@ -37,6 +37,7 @@ struct SettingsView: View {
 
             Section("Editor") {
                 Toggle("Vim key bindings", isOn: $settings.usesVimKeyBindings)
+                Toggle("Line wrapping", isOn: $settings.lineWrapping)
             }
 
             Section("Submit") {

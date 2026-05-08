@@ -78,6 +78,12 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    @Published var lineWrapping: Bool {
+        didSet {
+            UserDefaults.standard.set(lineWrapping, forKey: Self.lineWrappingKey)
+        }
+    }
+
     @Published var historyEditingMode: Bool = false
 
     private static let hotkeyKey = "hotkeyTrigger"
@@ -85,6 +91,7 @@ final class AppSettings: ObservableObject {
     private static let historyLimitKey = "historyLimit"
     private static let launchAtLoginKey = "launchAtLogin"
     private static let sendEnterAfterSubmitKey = "sendEnterAfterSubmit"
+    private static let lineWrappingKey = "lineWrapping"
 
     init(userDefaults: UserDefaults = .standard) {
         let rawHotkey = userDefaults.string(forKey: Self.hotkeyKey)
@@ -99,6 +106,7 @@ final class AppSettings: ObservableObject {
         
         launchAtLogin = userDefaults.bool(forKey: Self.launchAtLoginKey)
         sendEnterAfterSubmit = userDefaults.bool(forKey: Self.sendEnterAfterSubmitKey)
+        lineWrapping = userDefaults.bool(forKey: Self.lineWrappingKey)
     }
 
     private func updateLaunchAtLogin() {
