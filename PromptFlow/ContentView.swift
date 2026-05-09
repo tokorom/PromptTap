@@ -205,7 +205,7 @@ struct ContentView: View {
                             model.saveTemplate()
                         }
                         .buttonStyle(.bordered)
-                        .disabled(model.templateNameBuffer.isEmpty || model.promptText.isEmpty)
+                        .disabled(model.promptText.isEmpty)
                     }
                     .padding(.trailing, 8)
                 }

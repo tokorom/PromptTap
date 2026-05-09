@@ -146,17 +146,29 @@ final class PromptFlowModel: ObservableObject {
     func saveTemplate() {
         guard selection.count == 1, let first = selection.first else { return }
         
+        var finalName = templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+        if finalName.isEmpty {
+            let firstWord = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
+                .components(separatedBy: .whitespacesAndNewlines)
+                .first ?? "Untitled"
+            finalName = String(firstWord.prefix(10))
+            if finalName.isEmpty {
+                finalName = "Untitled"
+            }
+            templateNameBuffer = finalName
+        }
+
         switch first {
         case .template(let id):
             if let index = templates.firstIndex(where: { $0.id == id }) {
-                templates[index].name = templateNameBuffer
+                templates[index].name = finalName
                 templates[index].text = promptText
                 templates[index].updatedAt = Date()
                 sortTemplates()
                 saveTemplates()
             }
         case .newTemplate:
-            let newTemplate = PromptTemplate(name: templateNameBuffer, text: promptText)
+            let newTemplate = PromptTemplate(name: finalName, text: promptText)
             templates.insert(newTemplate, at: 0)
             sortTemplates()
             saveTemplates()
