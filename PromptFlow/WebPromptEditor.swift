@@ -187,13 +187,20 @@ private extension WebPromptEditor {
           line-height: 1.55;
         }
 
-        .cm-editor.cm-lineWrapping .cm-content {
-          word-break: break-all;
-          overflow-wrap: anywhere;
+        .cm-editor.promptflow-lineWrapping .cm-scroller {
+          overflow-x: hidden !important;
         }
 
-        .cm-editor.cm-lineWrapping .cm-scroller {
-          overflow-x: hidden !important;
+        .cm-content.cm-lineWrapping {
+          word-break: break-all;
+          overflow-wrap: anywhere;
+          line-break: anywhere;
+        }
+
+        .cm-content.cm-lineWrapping .cm-line {
+          word-break: break-all;
+          overflow-wrap: anywhere;
+          line-break: anywhere;
         }
 
         .cm-vim-panel {
@@ -232,6 +239,7 @@ private extension WebPromptEditor {
         let vimCompartment = null;
         let vimExtensionFactory = null;
         let lineWrappingCompartment = null;
+        let lineWrappingExtension = [];
 
         let pendingText = "";
         let pendingVim = false;
@@ -296,10 +304,11 @@ private extension WebPromptEditor {
             }
             if (lineWrappingCompartment && appliedLineWrapping !== pendingLineWrapping) {
               view.dispatch({
-                effects: lineWrappingCompartment.reconfigure(pendingLineWrapping ? EditorView.lineWrapping : [])
+                effects: lineWrappingCompartment.reconfigure(pendingLineWrapping ? lineWrappingExtension : [])
               });
               appliedLineWrapping = pendingLineWrapping;
             }
+            view.dom.classList.toggle("promptflow-lineWrapping", pendingLineWrapping);
             if (pendingFocus) {
               view.focus();
               pendingFocus = false;
@@ -367,6 +376,7 @@ private extension WebPromptEditor {
           vimCompartment = new Compartment();
           vimExtensionFactory = vim;
           lineWrappingCompartment = new Compartment();
+          lineWrappingExtension = EditorView.lineWrapping;
 
           const updateListener = EditorView.updateListener.of((update) => {
             if (update.docChanged) {
@@ -410,7 +420,7 @@ private extension WebPromptEditor {
             doc: pendingText,
             extensions: [
               vimCompartment.of(pendingVim ? vimExtension() : []),
-              lineWrappingCompartment.of(pendingLineWrapping ? EditorView.lineWrapping : []),
+              lineWrappingCompartment.of(pendingLineWrapping ? lineWrappingExtension : []),
               lineNumbers(),
               history(),
               markdown(),
