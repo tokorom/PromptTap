@@ -112,6 +112,15 @@ struct ContentView: View {
                         .tag(SidebarSelection.template(template.id))
                         .contextMenu {
                             Button {
+                                model.selection = [.template(template.id)]
+                                model.applyTemplate()
+                            } label: {
+                                Label("Prompt", systemImage: "arrow.right.square")
+                            }
+
+                            Divider()
+
+                            Button {
                                 model.revealTemplateInFinder(template)
                             } label: {
                                 Label("Show in Finder", systemImage: "folder")
@@ -137,6 +146,7 @@ struct ContentView: View {
                     Spacer()
                     Button {
                         model.selection = [.newTemplate]
+                        model.focusEditor()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -231,7 +241,7 @@ struct ContentView: View {
                 }
                 Spacer()
                 if model.isTemplateSelected {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 8) {
                         let currentTemplate = model.templates.first { template in
                             if case .template(let id) = model.selection.first {
                                 return template.id == id
@@ -240,8 +250,8 @@ struct ContentView: View {
                         }
 
                         Button {
-                            if let template = currentTemplate {
-                                model.revealTemplateInFinder(template)
+                            if let currentTemplate {
+                                model.revealTemplateInFinder(currentTemplate)
                             }
                         } label: {
                             Image(systemName: "folder")
@@ -251,8 +261,8 @@ struct ContentView: View {
                         .help("Show in Finder")
 
                         Button {
-                            if let template = currentTemplate {
-                                templatesToDelete = [template]
+                            if let currentTemplate {
+                                templatesToDelete = [currentTemplate]
                                 showingTemplateDeleteConfirmation = true
                             }
                         } label: {
@@ -273,7 +283,8 @@ struct ContentView: View {
                         }
                         .keyboardShortcut("p", modifiers: .command)
                         .buttonStyle(.borderedProminent)
-                        .disabled(model.promptText.isEmpty || currentTemplate == nil)
+                        .disabled(model.promptText.isEmpty || (model.selection.first != .newTemplate && currentTemplate == nil))
+                        .fixedSize()
 
                         Button {
                             model.saveTemplate()
@@ -282,6 +293,7 @@ struct ContentView: View {
                         }
                         .buttonStyle(.bordered)
                         .disabled(model.promptText.isEmpty)
+                        .fixedSize()
                     }
                     .padding(.trailing, 8)
                 }
