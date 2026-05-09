@@ -525,19 +525,29 @@ final class PromptFlowModel: ObservableObject {
         let name = template.name
         let sanitizedName = name.components(separatedBy: CharacterSet.alphanumerics.inverted).joined(separator: "_")
         
-        let filename: String
+        let newFilename: String
         if let existingFilename = template.filename {
-            filename = existingFilename
+            let components = existingFilename.components(separatedBy: "_")
+            if components.count >= 2, components.dropLast().joined(separator: "_") == sanitizedName {
+                newFilename = existingFilename
+            } else {
+                // If name changed, we need to create a new filename and delete the old one
+                let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+                newFilename = "\(sanitizedName)_\(timestamp).txt"
+                
+                let oldFileURL = templatesDirectoryURL.appendingPathComponent(existingFilename)
+                try? FileManager.default.removeItem(at: oldFileURL)
+                template.filename = newFilename
+            }
         } else {
             let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
-            filename = "\(sanitizedName)_\(timestamp).txt"
-            template.filename = filename
+            newFilename = "\(sanitizedName)_\(timestamp).txt"
+            template.filename = newFilename
         }
 
-        let fileURL = templatesDirectoryURL.appendingPathComponent(filename)
+        let fileURL = templatesDirectoryURL.appendingPathComponent(newFilename)
         do {
-            let data = try JSONEncoder().encode(template)
-            try data.write(to: fileURL)
+            try template.text.write(to: fileURL, atomically: true, encoding: .utf8)
         } catch {
             print("Failed to save template file: \(error)")
         }
@@ -545,16 +555,33 @@ final class PromptFlowModel: ObservableObject {
 
     private func loadTemplates() {
         let dirURL = templatesDirectoryURL
-        guard let files = try? FileManager.default.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: nil) else {
+        guard let files = try? FileManager.default.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: [.contentModificationDateKey]) else {
             return
         }
 
         var loadedTemplates: [PromptTemplate] = []
         for fileURL in files where fileURL.pathExtension == "txt" {
             do {
-                let data = try Data(contentsOf: fileURL)
-                var template = try JSONDecoder().decode(PromptTemplate.self, from: data)
-                template.filename = fileURL.lastPathComponent
+                let text = try String(contentsOf: fileURL, encoding: .utf8)
+                let filename = fileURL.lastPathComponent
+                let nameWithoutExtension = fileURL.deletingPathExtension().lastPathComponent
+                let name: String
+                let components = nameWithoutExtension.components(separatedBy: "_")
+                if components.count >= 2 {
+                    name = components.dropLast().joined(separator: "_")
+                } else {
+                    name = nameWithoutExtension
+                }
+
+                let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                let modificationDate = attributes[.modificationDate] as? Date ?? Date()
+
+                let template = PromptTemplate(
+                    name: name,
+                    text: text,
+                    updatedAt: modificationDate,
+                    filename: filename
+                )
                 loadedTemplates.append(template)
             } catch {
                 print("Failed to load template file \(fileURL): \(error)")
