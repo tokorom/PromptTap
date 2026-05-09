@@ -6,7 +6,7 @@ set -e
 XCCONFIG="Version.xcconfig"
 PROJECT="PromptFlow.xcodeproj"
 SCHEME="PromptFlow"
-BUILD_DIR="build"
+BUILD_DIR=".build"
 ARCHIVE_PATH="$BUILD_DIR/PromptFlow.xcarchive"
 APP_PATH="$ARCHIVE_PATH/Products/Applications/PromptFlow.app"
 
