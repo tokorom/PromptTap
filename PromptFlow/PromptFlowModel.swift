@@ -246,6 +246,15 @@ final class PromptFlowModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        settings.$templatesPath
+            .dropFirst()
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadTemplates()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func noteActivatedApplication(_ application: NSRunningApplication?) {
@@ -477,6 +486,12 @@ final class PromptFlowModel: ObservableObject {
     }
 
     private var templatesDirectoryURL: URL {
+        if let customPath = settings?.templatesPath, !customPath.isEmpty {
+            let url = URL(fileURLWithPath: customPath)
+            try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            return url
+        }
+
         let paths = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
         let appSupport = paths[0].appendingPathComponent(Bundle.main.bundleIdentifier ?? "PromptFlow")
         let templatesDir = appSupport.appendingPathComponent("templates")

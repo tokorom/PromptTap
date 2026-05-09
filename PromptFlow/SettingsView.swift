@@ -44,6 +44,37 @@ struct SettingsView: View {
                 Toggle("Send Enter after Submit", isOn: $settings.sendEnterAfterSubmit)
             }
 
+            Section("Template Storage") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(settings.templatesPath ?? "Default")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        
+                        Spacer()
+                        
+                        Button("Change...") {
+                            let panel = NSOpenPanel()
+                            panel.canChooseFiles = false
+                            panel.canChooseDirectories = true
+                            panel.allowsMultipleSelection = false
+                            panel.canCreateDirectories = true
+                            if panel.runModal() == .OK {
+                                settings.templatesPath = panel.url?.path
+                            }
+                        }
+                        
+                        if settings.templatesPath != nil {
+                            Button("Reset") {
+                                settings.templatesPath = nil
+                            }
+                        }
+                    }
+                }
+            }
+
             Section("History") {
                 Stepper("History Limit: \(settings.historyLimit)", value: $settings.historyLimit, in: 10...1000, step: 10)
 

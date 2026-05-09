@@ -84,6 +84,12 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    @Published var templatesPath: String? {
+        didSet {
+            UserDefaults.standard.set(templatesPath, forKey: Self.templatesPathKey)
+        }
+    }
+
     @Published var historyEditingMode: Bool = false
 
     private static let hotkeyKey = "hotkeyTrigger"
@@ -92,6 +98,7 @@ final class AppSettings: ObservableObject {
     private static let launchAtLoginKey = "launchAtLogin"
     private static let sendEnterAfterSubmitKey = "sendEnterAfterSubmit"
     private static let lineWrappingKey = "lineWrapping"
+    private static let templatesPathKey = "templatesPath"
 
     init(userDefaults: UserDefaults = .standard) {
         let rawHotkey = userDefaults.string(forKey: Self.hotkeyKey)
@@ -112,6 +119,8 @@ final class AppSettings: ObservableObject {
         } else {
             lineWrapping = userDefaults.bool(forKey: Self.lineWrappingKey)
         }
+
+        templatesPath = userDefaults.string(forKey: Self.templatesPathKey)
     }
 
     private func updateLaunchAtLogin() {
