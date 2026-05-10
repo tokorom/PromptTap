@@ -204,9 +204,17 @@ struct ContentView: View {
                     showingTemplateDeleteConfirmation = true
                 }
             } header: {
-                HStack {
+                HStack(spacing: 8) {
                     Text("Templates")
                     Spacer()
+                    Button {
+                        model.requestTemplateSearch()
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Search Templates")
+
                     Button {
                         model.selection = [.newTemplate]
                         model.focusEditor()
@@ -244,9 +252,17 @@ struct ContentView: View {
                     showingReserveDeleteConfirmation = true
                 }
             } header: {
-                HStack {
+                HStack(spacing: 8) {
                     Text("Reserves")
                     Spacer()
+                    Button {
+                        model.requestReserveSearch()
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Search Reserves")
+
                     Button {
                         model.selection = [.newReserve]
                         model.focusEditor()
