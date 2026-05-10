@@ -247,6 +247,14 @@ struct ContentView: View {
                 HStack {
                     Text("Reserves")
                     Spacer()
+                    Button {
+                        model.selection = [.newReserve]
+                        model.focusEditor()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Add Reserve")
                 }
             }
 
@@ -546,7 +554,7 @@ struct ContentView: View {
                     Text("Reserve")
                 }
             }
-            .disabled(model.promptText.isEmpty)
+            .disabled(model.promptText.isEmpty || model.isTemplateSelected || model.isReserveSelected)
             .help("Save the current prompt as a reserve")
 
             Spacer()

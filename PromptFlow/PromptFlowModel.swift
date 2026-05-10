@@ -61,6 +61,7 @@ enum SidebarSelection: Hashable {
     case template(UUID)
     case reserve(UUID)
     case newTemplate
+    case newReserve
 }
 
 @MainActor
@@ -109,7 +110,7 @@ final class PromptFlowModel: ObservableObject {
     var isReserveSelected: Bool {
         if let first = selection.first {
             switch first {
-            case .reserve: return true
+            case .reserve, .newReserve: return true
             default: return false
             }
         }
@@ -155,7 +156,7 @@ final class PromptFlowModel: ObservableObject {
                     templateNameBuffer = reserve.name
                     promptText = reserve.text
                 }
-            case .newTemplate:
+            case .newTemplate, .newReserve:
                 templateNameBuffer = ""
                 promptText = ""
             }
@@ -219,13 +220,33 @@ final class PromptFlowModel: ObservableObject {
     }
 
     func saveReserve() {
-        guard selection.count == 1, case .reserve(let id) = selection.first else { return }
+        guard selection.count == 1, let first = selection.first else { return }
 
-        if let index = reserves.firstIndex(where: { $0.id == id }) {
-            reserves[index].text = promptText
-            reserves[index].updatedAt = Date()
-            saveReserveFile(&reserves[index])
+        switch first {
+        case .reserve(let id):
+            if let index = reserves.firstIndex(where: { $0.id == id }) {
+                reserves[index].text = promptText
+                reserves[index].updatedAt = Date()
+                saveReserveFile(&reserves[index])
+                sortReserves()
+            }
+        case .newReserve:
+            let text = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { return }
+
+            let firstWord = text.components(separatedBy: .whitespacesAndNewlines).first ?? "Untitled"
+            var finalName = String(firstWord.prefix(10))
+            if finalName.isEmpty {
+                finalName = "Untitled"
+            }
+
+            var newReserve = PromptReserve(name: finalName, text: text)
+            saveReserveFile(&newReserve)
+            reserves.insert(newReserve, at: 0)
             sortReserves()
+            selection = [.reserve(newReserve.id)]
+        default:
+            break
         }
     }
 
@@ -466,12 +487,14 @@ final class PromptFlowModel: ObservableObject {
 
     func applyReserve(_ reserve: PromptReserve) {
         if let index = reserves.firstIndex(where: { $0.id == reserve.id }) {
+            let text = reserves[index].text
             reserves[index].updatedAt = Date()
             saveReserveFile(&reserves[index])
-            sortReserves()
             
-            currentPromptBuffer = reserves[index].text
-            promptText = reserves[index].text
+            currentPromptBuffer = text
+            promptText = text
+            
+            sortReserves()
             selection = [.current]
         }
     }
