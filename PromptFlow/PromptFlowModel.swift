@@ -221,7 +221,7 @@ final class PromptFlowModel: ObservableObject {
             let firstWord = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
                 .components(separatedBy: .whitespacesAndNewlines)
                 .first ?? "Untitled"
-            finalName = String(firstWord.prefix(10))
+            finalName = String(firstWord.prefix(20))
             if finalName.isEmpty {
                 finalName = "Untitled"
             }
@@ -255,7 +255,7 @@ final class PromptFlowModel: ObservableObject {
         guard !text.isEmpty else { return }
 
         let firstWord = text.components(separatedBy: .whitespacesAndNewlines).first ?? "Untitled"
-        var finalName = String(firstWord.prefix(10))
+        var finalName = String(firstWord.prefix(20))
         if finalName.isEmpty {
             finalName = "Untitled"
         }
@@ -268,6 +268,7 @@ final class PromptFlowModel: ObservableObject {
                 reserves[index].updatedAt = Date()
                 saveReserveFile(&reserves[index])
                 sortReserves()
+                templateNameBuffer = finalName
             }
         case .newReserve:
             var newReserve = PromptReserve(name: finalName, text: text)
@@ -275,6 +276,7 @@ final class PromptFlowModel: ObservableObject {
             reserves.insert(newReserve, at: 0)
             sortReserves()
             selection = [.reserve(newReserve.id)]
+            templateNameBuffer = finalName
         default:
             break
         }
