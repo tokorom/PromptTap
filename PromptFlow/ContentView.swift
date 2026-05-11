@@ -165,7 +165,7 @@ struct ContentView: View {
             .opacity(0)
 
             Button("") {
-                model.selectPreviousHistory()
+                model.selectLatestHistory()
             }
             .keyboardShortcut("h", modifiers: .command)
             .opacity(0)

@@ -316,18 +316,18 @@ final class PromptFlowModel: ObservableObject {
         focusEditor()
     }
 
-    func selectPreviousHistory() {
-        guard !history.isEmpty else { return }
+    func selectLatestHistory() {
+        guard !history.isEmpty else {
+            selection = [.current]
+            focusEditor()
+            return
+        }
 
-        if let lastSelection = selection.first, case .history(let id) = lastSelection {
-            if let currentIndex = history.firstIndex(where: { $0.id == id }) {
-                let nextIndex = currentIndex + 1
-                if nextIndex < history.count {
-                    selection = [.history(history[nextIndex].id)]
-                }
-            }
+        let latestHistoryId = history[0].id
+        if selection.contains(.history(latestHistoryId)) {
+            selection = [.current]
         } else {
-            selection = [.history(history[0].id)]
+            selection = [.history(latestHistoryId)]
         }
 
         focusEditor()
