@@ -31,7 +31,8 @@ PromptFlow is built for speed. Focus on your thoughts, not the UI:
 | `Double Shift` | Open PromptFlow / Toggle back to target app |
 | `Cmd + S` | **Submit**: Return to previous app and paste prompt |
 | `Cmd + C` | **Copy**: Copy full prompt to clipboard |
-| `Cmd + P` | **Navigate History**: Select the latest or previous history item |
+| `Cmd + P` | **Previous History**: Select the previous (older) history item |
+| `Cmd + N` | **Next History**: Select the next (newer) history item |
 | `Cmd + T` | Open **Template Search** panel |
 | `Cmd + R` | Open **Reserve Search** panel |
 | `Cmd + E` | Focus the **Editor** |

@@ -153,6 +153,12 @@ struct ContentView: View {
             .opacity(0)
 
             Button("") {
+                model.selectNextHistory()
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .opacity(0)
+
+            Button("") {
                 model.selectPreviousHistory()
             }
             .keyboardShortcut("p", modifiers: .command)
