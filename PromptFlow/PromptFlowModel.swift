@@ -73,8 +73,37 @@ final class PromptFlowModel: ObservableObject {
     @Published private(set) var focusRequestID = 0
     @Published private(set) var focusListRequestID = 0
     @Published var selection: Set<SidebarSelection> = [.current] {
+        willSet {
+            handleUnsavedChangesBeforeSelectionChange(to: newValue)
+        }
         didSet {
             updatePromptTextFromSelection()
+        }
+    }
+
+    private func handleUnsavedChangesBeforeSelectionChange(to newSelection: Set<SidebarSelection>) {
+        guard newSelection.contains(.current) else { return }
+        guard let currentSelection = selection.first else { return }
+
+        switch currentSelection {
+        case .template(let id):
+            if let template = templates.first(where: { $0.id == id }), template.text != promptText {
+                addToHistory(promptText)
+            }
+        case .newTemplate:
+            if !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                addToHistory(promptText)
+            }
+        case .reserve(let id):
+            if let reserve = reserves.first(where: { $0.id == id }), reserve.text != promptText {
+                addToHistory(promptText)
+            }
+        case .newReserve:
+            if !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                addToHistory(promptText)
+            }
+        default:
+            break
         }
     }
     @Published private(set) var previousApplicationName: String?
