@@ -1,6 +1,1 @@
-- Command+Fによるグローバル・インクリメンタル検索を実装（Templates/Reserves/Historyを横断）
-- 検索結果をTemplates/Reserves/Historyのセクションに分けて表示
-- Command+Hの挙動を、最新の履歴とCurrent Promptのトグルに改善
-- Command+N/Pによるサイドバー全項目（Templates/Reserves/History）の循環選択をサポート
-- テンプレートとReserve保存時のタイトル自動生成ロジックをより適切に改善
-- 履歴・検索結果のキーボード操作（Cmd+N/P, 矢印キー, Enter, Esc）の最適化
+- archiveスクリプトの修正
