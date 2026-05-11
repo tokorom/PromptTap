@@ -62,4 +62,4 @@ In the **Settings** (`Cmd + ,`), you can customize:
 - **Storage**: Choose a custom folder to store your Templates and Reserves as plain `.txt` files for easy syncing or external editing.
 
 ---
-*Created by Yuta Tokoro.*
+*Created by [tokorom](https://github.com/tokorom).*
