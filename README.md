@@ -45,7 +45,8 @@ PromptFlow is built for speed. Focus on your thoughts, not the UI:
 
 ## Installation
 
-1. Download the latest version from the [Releases](https://github.com/tokorom/PromptFlow/releases) page.
+1. Download the latest version `PromptFlow-x.x.x.dmg
+` from the [Releases](https://github.com/tokorom/PromptFlow/releases) page.
 2. Drag **PromptFlow.app** to your `/Applications` folder.
 3. Upon first launch, you will be prompted to grant **Accessibility** permissions. This is required for:
    - Detecting the previous application to enable "Submit".
