@@ -1,6 +1,7 @@
 # PromptFlow
 
 <!-- [APP_LOGO]: Placeholder for the app icon (128x128 or 256x256) -->
+![LOGO](./docs/images/logo.png)
 
 PromptFlow is a native macOS application designed to streamline the way you interact with AI agents. It serves as a dedicated workspace to draft, manage, and instantly submit prompts to any application on your Mac.
 
