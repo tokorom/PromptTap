@@ -27,6 +27,13 @@ struct PromptFlowApp: App {
         .commands {
             PromptCommands(model: model)
             CommandGroup(replacing: .newItem) { }
+            CommandGroup(replacing: .help) {
+                Button("PromptFlow Help") {
+                    if let url = URL(string: "https://github.com/tokorom/PromptFlow/blob/main/README.md") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
         }
         .onChange(of: model.shouldOpenMainWindow) { _, newValue in
             if newValue {
