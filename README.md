@@ -1,5 +1,7 @@
 # PromptFlow
 
+English | [日本語](./README.ja.md)
+
 <p align="center">
 <img src="./docs/images/logo.png" alt="LOGO" />
 </p>
