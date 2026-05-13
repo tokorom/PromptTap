@@ -65,7 +65,7 @@ fi
 
 echo
 echo "Running brew audit..."
-brew audit --cask "./$CASK_FILE"
+brew audit --cask "$CASK_NAME"
 
 git add "$CASK_FILE"
 git commit -m "Update ${CASK_NAME} to ${VERSION}"
