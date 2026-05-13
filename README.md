@@ -8,7 +8,7 @@ English | [日本語](./README.ja.md)
 
 PromptTap is a native macOS application designed to streamline the way you interact with AI agents. It serves as a dedicated workspace to draft, manage, and instantly submit prompts to any application on your Mac.
 
-## Fast Workflow
+## Fast WorkTap
 
 PromptTap is built for speed. Focus on your thoughts, not the UI:
 
@@ -56,7 +56,7 @@ PromptTap is built for speed. Focus on your thoughts, not the UI:
 
 ```bash
 brew tap tokorom/tap
-brew install --cask promptflow
+brew install --cask prompttap
 ```
 
 ### Manual Installation

@@ -190,7 +190,7 @@ private extension WebPromptEditor {
           line-height: 1.55;
         }
 
-        .cm-editor.promptflow-lineWrapping .cm-scroller {
+        .cm-editor.prompttap-lineWrapping .cm-scroller {
           overflow-x: hidden !important;
         }
 
@@ -317,7 +317,7 @@ private extension WebPromptEditor {
               });
               appliedLineWrapping = pendingLineWrapping;
             }
-            view.dom.classList.toggle("promptflow-lineWrapping", pendingLineWrapping);
+            view.dom.classList.toggle("prompttap-lineWrapping", pendingLineWrapping);
             if (pendingFocus) {
               view.focus();
               pendingFocus = false;

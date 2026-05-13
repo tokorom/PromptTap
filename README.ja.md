@@ -56,7 +56,7 @@ PromptTapはスピードを重視して構築されています。UIではなく
 
 ```bash
 brew tap tokorom/tap
-brew install --cask promptflow
+brew install --cask prompttap
 ```
 
 ### 手動インストール
