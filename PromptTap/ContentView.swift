@@ -397,7 +397,7 @@ struct ContentView: View {
                 }
         )
         .simultaneousGesture(
-            LongPressGesture(minimumDuration: 1.0)
+            LongPressGesture(minimumDuration: 0.5)
                 .onEnded { _ in
                     model.shouldSuppressEditorFocusOnNextSelection = true
                 }
