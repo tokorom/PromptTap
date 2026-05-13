@@ -272,7 +272,7 @@ struct ContentView: View {
                         model.requestTemplateSearch()
                     } label: {
                         Image(systemName: "magnifyingglass")
-                            .shortcutHelp("Search Templates", shortcut: "⌘T")
+                            .shortcutHelp("Search Templates", shortcut: "⌘T", placement: .below)
                     }
                     .buttonStyle(.plain)
 
@@ -320,7 +320,7 @@ struct ContentView: View {
                         model.requestReserveSearch()
                     } label: {
                         Image(systemName: "magnifyingglass")
-                            .shortcutHelp("Search Reserves", shortcut: "⌘R")
+                            .shortcutHelp("Search Reserves", shortcut: "⌘R", placement: .below)
                     }
                     .buttonStyle(.plain)
 
@@ -1027,31 +1027,70 @@ private struct ReserveSearchKeyMonitor: NSViewRepresentable {
 }
 
 private extension View {
-    func shortcutHelp(_ message: String, shortcut: String) -> some View {
-        modifier(ShortcutHelpModifier(message: message, shortcut: shortcut))
+    func shortcutHelp(
+        _ message: String,
+        shortcut: String,
+        placement: ShortcutHelpPlacement = .above
+    ) -> some View {
+        modifier(ShortcutHelpModifier(message: message, shortcut: shortcut, placement: placement))
     }
+}
+
+private enum ShortcutHelpPlacement {
+    case above
+    case below
 }
 
 private struct ShortcutHelpModifier: ViewModifier {
     let message: String
     let shortcut: String
+    let placement: ShortcutHelpPlacement
 
     @State private var isHovering = false
 
     func body(content: Content) -> some View {
         content
             .onHover { isHovering = $0 }
-            .overlay(alignment: .top) {
+            .overlay(alignment: placement.alignment) {
                 if isHovering {
                     ShortcutHelpTip(message: message, shortcut: shortcut)
                         .fixedSize()
-                        .offset(y: -38)
-                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .bottom)))
+                        .offset(y: placement.yOffset)
+                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: placement.scaleAnchor)))
                         .allowsHitTesting(false)
                         .zIndex(1)
                 }
             }
             .animation(.easeOut(duration: 0.08), value: isHovering)
+    }
+}
+
+private extension ShortcutHelpPlacement {
+    var alignment: Alignment {
+        switch self {
+        case .above:
+            .top
+        case .below:
+            .bottom
+        }
+    }
+
+    var yOffset: CGFloat {
+        switch self {
+        case .above:
+            -38
+        case .below:
+            38
+        }
+    }
+
+    var scaleAnchor: UnitPoint {
+        switch self {
+        case .above:
+            .bottom
+        case .below:
+            .top
+        }
     }
 }
 
