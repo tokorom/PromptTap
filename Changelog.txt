@@ -1,1 +1,1 @@
-Rename App Name
+homebrew-tapへの自動登録
