@@ -489,6 +489,7 @@ struct ContentView: View {
                             Label("Prompt", systemImage: "arrow.right.square")
                         }
                         .buttonStyle(.borderedProminent)
+                        .keyboardShortcut("p", modifiers: [.command, .shift])
                         .disabled(model.promptText.isEmpty || (model.selection.first != .newTemplate && currentTemplate == nil))
                         .fixedSize()
 
@@ -498,6 +499,7 @@ struct ContentView: View {
                             Label("Save", systemImage: "square.and.arrow.down")
                         }
                         .buttonStyle(.bordered)
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
                         .disabled(model.promptText.isEmpty)
                         .fixedSize()
                     }
@@ -546,6 +548,7 @@ struct ContentView: View {
                             Label("Prompt", systemImage: "arrow.right.square")
                         }
                         .buttonStyle(.borderedProminent)
+                        .keyboardShortcut("p", modifiers: [.command, .shift])
                         .disabled(model.promptText.isEmpty || currentReserve == nil)
                         .fixedSize()
 
@@ -555,6 +558,7 @@ struct ContentView: View {
                             Label("Save", systemImage: "square.and.arrow.down")
                         }
                         .buttonStyle(.bordered)
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
                         .disabled(model.promptText.isEmpty)
                         .fixedSize()
                     }
