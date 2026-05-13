@@ -22,8 +22,7 @@ cask_repo := "tokorom/homebrew-tap"
 build_number = $$(zsh -c "source $(increment_version_script) && get_build_number $(xcconfig) $(build_number_key)")
 marketing_version = $$(zsh -c "source $(increment_version_script) && get_marketing_version $(xcconfig) $(marketing_version_key)")
 
-deploy:
-	$(eval DMG_PATH := $(shell $(archive_script)))
+bump_version:
 	${EDITOR} $(changelog)
 	git add $(changelog)
 	git commit -m "Update changelog" || true
@@ -32,6 +31,9 @@ deploy:
 	git add $(xcconfig)
 	git commit -m "Bump up app version to $(marketing_version) ($(build_number))" || true
 	git push origin @
+
+deploy: bump_version
+	$(eval DMG_PATH := $(shell $(archive_script)))
 	zsh -c "source $(github_release_script) && github_release $(github_repo) $(marketing_version) $(github_token) $(changelog) $(DMG_PATH)"
 	git ls-remote --exit-code . origin/$(deploy_branch) && git push origin --delete $(deploy_branch) || true
 	git push origin HEAD:$(deploy_branch)
