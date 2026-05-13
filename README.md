@@ -81,6 +81,11 @@ In the **Settings** (`Cmd + ,`), you can customize:
 - **History**: Set the maximum number of history items to retain.
 - **Storage**: Choose a custom folder to store your Templates and Reserves as plain `.txt` files for easy syncing or external editing.
 
+## Changelog
+
+Release notes and download links are available on the
+[GitHub Releases page](https://github.com/tokorom/PromptTap/releases).
+
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.

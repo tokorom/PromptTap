@@ -81,6 +81,11 @@ brew install --cask prompttap
 - **履歴**: 保持する履歴アイテムの最大数を設定。
 - **ストレージ**: テンプレートとリザーブをプレーンな `.txt` ファイルとして保存するカスタムフォルダを選択でき、同期や外部エディタでの編集が容易になります。
 
+## Changelog
+
+Release notes and download links are available on the
+[GitHub Releases page](https://github.com/tokorom/PromptTap/releases).
+
 ## 貢献について
 
 プロジェクトへの貢献を歓迎します！詳細は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
