@@ -170,9 +170,10 @@ final class PromptTapModel: ObservableObject {
         guard let lastSelection = selection.first else { return }
 
         let suppressFocus = shouldSuppressEditorFocusOnNextSelection
-        shouldSuppressEditorFocusOnNextSelection = false
 
         Task { @MainActor in
+            shouldSuppressEditorFocusOnNextSelection = false
+
             switch lastSelection {
             case .current:
                 promptText = currentPromptBuffer
