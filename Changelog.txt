@@ -1,5 +1,12 @@
-- アイテム選択後にエディタへ自動フォーカスするよう改善
-- Reserve保存時のタイトル命名規則をTemplate/Reserve保存時と統一
-- Vimモードの切り替え時にエディタのテキストがクリアされる問題を修正
-- Makefileの「missing separator」エラーおよび変数展開の不備を修正
-- デプロイ工程を分割し、バージョン更新後のビルド順序を適正化
+### Added
+- Auto-focus the editor when a sidebar item is selected.
+- Unified naming convention for saving "Reserves" to match "Templates".
+- Logic to exclude PromptTap itself from the submit target history.
+- Feature to hide the app window if no valid target exists when the hotkey is triggered.
+- New `CONTRIBUTING.md` and `LICENSE` files.
+
+### Fixed
+- Stabilized editor text preservation when toggling Vim keybindings.
+- Corrected "missing separator" and variable interpolation issues in the Makefile.
+- Resolved build failures caused by syntax errors in `PromptTapModel`.
+- Optimized deployment process by splitting version bumping and archiving steps.
