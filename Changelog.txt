@@ -1,12 +1,3 @@
 ### Added
-- Auto-focus the editor when a sidebar item is selected.
-- Unified naming convention for saving "Reserves" to match "Templates".
-- Logic to exclude PromptTap itself from the submit target history.
-- Feature to hide the app window if no valid target exists when the hotkey is triggered.
-- New `CONTRIBUTING.md` and `LICENSE` files.
+- Window now automatically moves to the active workspace (Space) when triggered.
 
-### Fixed
-- Stabilized editor text preservation when toggling Vim keybindings.
-- Corrected "missing separator" and variable interpolation issues in the Makefile.
-- Resolved build failures caused by syntax errors in `PromptTapModel`.
-- Optimized deployment process by splitting version bumping and archiving steps.
