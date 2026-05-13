@@ -190,6 +190,7 @@ final class PromptTapModel: ObservableObject {
                 templateNameBuffer = ""
                 promptText = ""
             }
+            focusEditor()
         }
     }
 
