@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-bump_type=patch
+bump_type=minor
 deploy_branch=deploy
 
 changelog := "./Changelog.txt"
