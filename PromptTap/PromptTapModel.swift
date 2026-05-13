@@ -488,6 +488,8 @@ final class PromptTapModel: ObservableObject {
         if targetHistory.count > 10 {
             targetHistory.removeLast()
         }
+    }
+
     @Published var shouldOpenMainWindow = false
     @Published var shouldCloseMainWindow = false
 
