@@ -49,8 +49,8 @@ struct WebPromptEditor: NSViewRepresentable {
 
         if context.coordinator.lastKnownText != text {
             context.coordinator.lastKnownText = text
+            context.coordinator.callJavaScriptFunction("setText", argument: text)
         }
-        context.coordinator.callJavaScriptFunction("setText", argument: text)
 
         if context.coordinator.lastVimMode != usesVimKeyBindings {
             context.coordinator.lastVimMode = usesVimKeyBindings
@@ -300,10 +300,9 @@ private extension WebPromptEditor {
 
         const applyState = () => {
           if (view) {
-            const currentText = view.state.doc.toString();
-            if (currentText !== pendingText) {
+            if (view.state.doc.toString() !== pendingText) {
               view.dispatch({
-                changes: { from: 0, to: currentText.length, insert: pendingText }
+                changes: { from: 0, to: view.state.doc.length, insert: pendingText }
               });
             }
             if (vimCompartment && vimExtensionFactory && appliedVim !== pendingVim) {
