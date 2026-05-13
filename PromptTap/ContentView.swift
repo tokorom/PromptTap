@@ -272,7 +272,7 @@ struct ContentView: View {
                         model.requestTemplateSearch()
                     } label: {
                         Image(systemName: "magnifyingglass")
-                            .shortcutHelp("Search Templates", shortcut: "⌘T", placement: .below, size: .compact)
+                            .shortcutHelp("Search Templates", shortcut: "⌘T", placement: .leading, size: .compact)
                     }
                     .buttonStyle(.plain)
 
@@ -320,7 +320,7 @@ struct ContentView: View {
                         model.requestReserveSearch()
                     } label: {
                         Image(systemName: "magnifyingglass")
-                            .shortcutHelp("Search Reserves", shortcut: "⌘R", placement: .below, size: .compact)
+                            .shortcutHelp("Search Reserves", shortcut: "⌘R", placement: .leading, size: .compact)
                     }
                     .buttonStyle(.plain)
 
@@ -501,7 +501,7 @@ struct ContentView: View {
                             model.applyTemplate()
                         } label: {
                             Label("Prompt", systemImage: "arrow.right.square")
-                                .shortcutHelp("Prompt with this template", shortcut: "⌘⇧P", placement: .below)
+                                .shortcutHelp("Prompt with this template", shortcut: "⌘⇧P")
                         }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut("p", modifiers: [.command, .shift])
@@ -512,7 +512,7 @@ struct ContentView: View {
                             model.saveTemplate()
                         } label: {
                             Label("Save", systemImage: "square.and.arrow.down")
-                                .shortcutHelp("Save this template", shortcut: "⌘⇧S", placement: .below)
+                                .shortcutHelp("Save this template", shortcut: "⌘⇧S")
                         }
                         .buttonStyle(.bordered)
                         .keyboardShortcut("s", modifiers: [.command, .shift])
@@ -562,7 +562,7 @@ struct ContentView: View {
                             }
                         } label: {
                             Label("Prompt", systemImage: "arrow.right.square")
-                                .shortcutHelp("Prompt with this reserve", shortcut: "⌘⇧P", placement: .below)
+                                .shortcutHelp("Prompt with this reserve", shortcut: "⌘⇧P")
                         }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut("p", modifiers: [.command, .shift])
@@ -573,7 +573,7 @@ struct ContentView: View {
                             model.saveReserve()
                         } label: {
                             Label("Save", systemImage: "square.and.arrow.down")
-                                .shortcutHelp("Save this reserve", shortcut: "⌘⇧S", placement: .below)
+                                .shortcutHelp("Save this reserve", shortcut: "⌘⇧S")
                         }
                         .buttonStyle(.bordered)
                         .keyboardShortcut("s", modifiers: [.command, .shift])
@@ -1154,9 +1154,9 @@ private extension ShortcutHelpSize {
     var offsetDistance: CGFloat {
         switch self {
         case .regular:
-            72
+            50
         case .compact:
-            48
+            30
         }
     }
 }
@@ -1171,7 +1171,7 @@ private struct ShortcutHelpTip: View {
             .foregroundStyle(.white)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
-            .background(Color.accentColor, in: Capsule())
+            .background(Color.gray, in: Capsule())
             .shadow(color: .black.opacity(0.18), radius: 5, y: 2)
     }
 }
