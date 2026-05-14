@@ -128,7 +128,7 @@ struct SettingsView: View {
             settings.hotkey
         } set: { trigger in
             if trigger == .custom {
-                draftCustomHotkey = nil
+                draftCustomHotkey = settings.customHotkey
                 showingCustomHotkey = true
             } else {
                 settings.hotkey = trigger
@@ -177,7 +177,7 @@ private struct CustomHotkeySheet: View {
         .padding(20)
         .frame(width: 360)
         .onAppear {
-            candidateHotkey = nil
+            candidateHotkey = currentHotkey
         }
     }
 }
