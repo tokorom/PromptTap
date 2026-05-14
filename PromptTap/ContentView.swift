@@ -216,7 +216,7 @@ struct ContentView: View {
             Button("") {
                 model.newCurrentPrompt()
             }
-            .keyboardShortcut("n", modifiers: [.control, .shift])
+            .keyboardShortcut("n", modifiers: [.command, .shift])
             .opacity(0)
 
             if !settings.usesVimKeyBindings {
