@@ -1,8 +1,3 @@
 ### Added
-- Shortcut hints displayed on buttons.
-- Shortcut keys for Template and Reserve actions.
-- Save (Shift+Command+S) and Prompt (Shift+Command+P) shortcuts in editing screens.
-- Suppress editor focus on LongPress or Command+Tap in the sidebar.
+- Adopt Mixpanel
 
-### Fixed
-- Refined sidebar focus suppression behavior.
