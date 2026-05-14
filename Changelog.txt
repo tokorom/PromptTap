@@ -1,3 +1,3 @@
 ### Added
-- Adopt Mixpanel
+- Custom hotkey support for triggering the app.
 
