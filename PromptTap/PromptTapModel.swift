@@ -170,34 +170,32 @@ final class PromptTapModel: ObservableObject {
         guard let lastSelection = selection.first else { return }
 
         let suppressFocus = shouldSuppressEditorFocusOnNextSelection
+        shouldSuppressEditorFocusOnNextSelection = false
 
-        Task { @MainActor in
-            shouldSuppressEditorFocusOnNextSelection = false
+        switch lastSelection {
+        case .current:
+            promptText = currentPromptBuffer
+        case .history(let id):
+            if let entry = history.first(where: { $0.id == id }) {
+                promptText = entry.text
+            }
+        case .template(let id):
+            if let index = templates.firstIndex(where: { $0.id == id }) {
+                templateNameBuffer = templates[index].name
+                promptText = templates[index].text
+            }
+        case .reserve(let id):
+            if let index = reserves.firstIndex(where: { $0.id == id }) {
+                templateNameBuffer = reserves[index].name
+                promptText = reserves[index].text
+            }
+        case .newTemplate, .newReserve:
+            templateNameBuffer = ""
+            promptText = ""
+        }
 
-            switch lastSelection {
-            case .current:
-                promptText = currentPromptBuffer
-            case .history(let id):
-                if let entry = history.first(where: { $0.id == id }) {
-                    promptText = entry.text
-                }
-            case .template(let id):
-                if let template = templates.first(where: { $0.id == id }) {
-                    templateNameBuffer = template.name
-                    promptText = template.text
-                }
-            case .reserve(let id):
-                if let reserve = reserves.first(where: { $0.id == id }) {
-                    templateNameBuffer = reserve.name
-                    promptText = reserve.text
-                }
-            case .newTemplate, .newReserve:
-                templateNameBuffer = ""
-                promptText = ""
-            }
-            if !suppressFocus {
-                focusEditor()
-            }
+        if !suppressFocus {
+            focusEditor()
         }
     }
 
@@ -246,7 +244,6 @@ final class PromptTapModel: ObservableObject {
             templates.insert(newTemplate, at: 0)
             sortTemplates()
             selection = [.template(newTemplate.id)]
-            updatePromptTextFromSelection()
         default:
             break
         }
@@ -277,7 +274,6 @@ final class PromptTapModel: ObservableObject {
             sortReserves()
             selection = [.reserve(newReserve.id)]
             templateNameBuffer = finalName
-            updatePromptTextFromSelection()
         default:
             break
         }
@@ -600,7 +596,6 @@ final class PromptTapModel: ObservableObject {
 
         currentPromptBuffer = ""
         selection = [.reserve(newReserve.id)]
-        updatePromptTextFromSelection()
     }
 
     func templatePrompt() {
@@ -616,7 +611,6 @@ final class PromptTapModel: ObservableObject {
 
         currentPromptBuffer = ""
         selection = [.template(newTemplate.id)]
-        updatePromptTextFromSelection()
     }
 
     func applyReserve(_ reserve: PromptReserve) {
