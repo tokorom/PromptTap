@@ -13,9 +13,20 @@ struct SettingsView: View {
 
     @State private var showingClearConfirmation = false
     @State private var showingCustomHotkey = false
+    @State private var showingKeyboardShortcuts = false
     @State private var draftCustomHotkey: CustomHotkey?
 
     var body: some View {
+        if showingKeyboardShortcuts {
+            KeyboardShortcutsSettingsView {
+                showingKeyboardShortcuts = false
+            }
+        } else {
+            settingsForm
+        }
+    }
+
+    private var settingsForm: some View {
         Form {
             Section {
                 HStack {
@@ -33,6 +44,19 @@ struct SettingsView: View {
                             .tag(trigger)
                     }
                 }
+
+                Button {
+                    showingKeyboardShortcuts = true
+                } label: {
+                    HStack {
+                        Text("Keyboard Shortcuts")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .buttonStyle(.plain)
 
                 Toggle("Launch at login", isOn: $settings.launchAtLogin)
             }
@@ -107,6 +131,7 @@ struct SettingsView: View {
         .frame(width: 420)
         .sheet(isPresented: $showingCustomHotkey) {
             CustomHotkeySheet(
+                title: "Custom Hotkey",
                 candidateHotkey: $draftCustomHotkey,
                 currentHotkey: settings.customHotkey,
                 onCancel: {
@@ -144,7 +169,114 @@ struct SettingsView: View {
     }
 }
 
+private struct KeyboardShortcutsSettingsView: View {
+    @EnvironmentObject private var settings: AppSettings
+
+    let onBack: () -> Void
+
+    @State private var draftShortcuts = KeyboardShortcutAction.defaultShortcuts
+    @State private var editingAction: KeyboardShortcutAction?
+    @State private var draftEditingHotkey: CustomHotkey?
+    @State private var showingDiscardConfirmation = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button {
+                    requestBack()
+                } label: {
+                    Label("General", systemImage: "chevron.left")
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Button("Save") {
+                    settings.keyboardShortcuts = draftShortcuts
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!hasChanges)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 8)
+
+            Form {
+                Section("Keyboard Shortcuts") {
+                    ForEach(KeyboardShortcutAction.allCases) { action in
+                        Button {
+                            draftEditingHotkey = shortcut(for: action)
+                            editingAction = action
+                        } label: {
+                            HStack {
+                                Text(action.title)
+                                Spacer()
+                                Text(shortcut(for: action).title)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .formStyle(.grouped)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+        }
+        .frame(width: 420)
+        .onAppear {
+            draftShortcuts = settings.keyboardShortcuts
+        }
+        .sheet(item: $editingAction) { action in
+            CustomHotkeySheet(
+                title: action.title,
+                candidateHotkey: $draftEditingHotkey,
+                currentHotkey: shortcut(for: action),
+                onCancel: {
+                    draftEditingHotkey = nil
+                    editingAction = nil
+                },
+                onSave: { hotkey in
+                    draftShortcuts[action] = hotkey
+                    draftEditingHotkey = nil
+                    editingAction = nil
+                }
+            )
+        }
+        .confirmationDialog(
+            "Discard keyboard shortcut changes?",
+            isPresented: $showingDiscardConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Discard Changes", role: .destructive) {
+                onBack()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Your unsaved keyboard shortcut changes will not be applied.")
+        }
+    }
+
+    private var hasChanges: Bool {
+        draftShortcuts != settings.keyboardShortcuts
+    }
+
+    private func requestBack() {
+        if hasChanges {
+            showingDiscardConfirmation = true
+        } else {
+            onBack()
+        }
+    }
+
+    private func shortcut(for action: KeyboardShortcutAction) -> CustomHotkey {
+        draftShortcuts[action] ?? action.defaultHotkey
+    }
+}
+
 private struct CustomHotkeySheet: View {
+    let title: String
+
     @Binding var candidateHotkey: CustomHotkey?
 
     let currentHotkey: CustomHotkey
@@ -153,7 +285,7 @@ private struct CustomHotkeySheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Custom Hotkey")
+            Text(title)
                 .font(.headline)
 
             HotkeyCaptureField(candidateHotkey: $candidateHotkey)

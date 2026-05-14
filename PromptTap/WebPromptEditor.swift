@@ -14,11 +14,13 @@ struct WebPromptEditor: NSViewRepresentable {
 
     let usesVimKeyBindings: Bool
     let lineWrapping: Bool
+    let shortcuts: [KeyboardShortcutAction: CustomHotkey]
     let focusRequestID: Int
     let onSubmit: () -> Void
     let onCopyAll: () -> Void
     let onSearchGlobal: () -> Void
     let onSearchTemplates: () -> Void
+    let onSearchReserves: () -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -40,6 +42,7 @@ struct WebPromptEditor: NSViewRepresentable {
         context.coordinator.lastKnownText = text
         context.coordinator.lastVimMode = usesVimKeyBindings
         context.coordinator.lastLineWrapping = lineWrapping
+        context.coordinator.lastShortcuts = webShortcuts
         context.coordinator.lastFocusRequestID = focusRequestID
 
         return webView
@@ -63,6 +66,11 @@ struct WebPromptEditor: NSViewRepresentable {
             context.coordinator.callJavaScriptFunction("setLineWrapping", argument: lineWrapping)
         }
 
+        if context.coordinator.lastShortcuts != webShortcuts {
+            context.coordinator.lastShortcuts = webShortcuts
+            context.coordinator.callJavaScriptFunction("setShortcuts", argument: webShortcuts)
+        }
+
         if context.coordinator.lastFocusRequestID != focusRequestID {
             context.coordinator.lastFocusRequestID = focusRequestID
             if let window = webView.window {
@@ -82,6 +90,7 @@ extension WebPromptEditor {
         var lastKnownText = ""
         var lastVimMode: Bool?
         var lastLineWrapping: Bool?
+        var lastShortcuts: [String: WebShortcutDescriptor] = [:]
         var lastFocusRequestID = 0
 
         init(_ parent: WebPromptEditor) {
@@ -92,6 +101,7 @@ extension WebPromptEditor {
             callJavaScriptFunction("setText", argument: parent.text)
             callJavaScriptFunction("setVim", argument: parent.usesVimKeyBindings)
             callJavaScriptFunction("setLineWrapping", argument: parent.lineWrapping)
+            callJavaScriptFunction("setShortcuts", argument: parent.webShortcuts)
             let enterInsertMode = parent.focusRequestID > 1000
             callJavaScript("window.promptTapEditor?.focusEditor(\(enterInsertMode));")
         }
@@ -126,6 +136,8 @@ extension WebPromptEditor {
                 parent.onCopyAll()
             case "searchTemplates":
                 parent.onSearchTemplates()
+            case "searchReserves":
+                parent.onSearchReserves()
             case "editorLoadFailed":
                 let message = body["message"] as? String ?? "Unknown error"
                 print("PromptTap editor fell back to textarea: \(message)")
@@ -148,6 +160,15 @@ extension WebPromptEditor {
             callJavaScript("window.promptTapEditor?.\(name)(\(boolString));")
         }
 
+        func callJavaScriptFunction<T: Encodable>(_ name: String, argument: T) {
+            guard let encoded = try? JSONEncoder().encode(argument),
+                  let json = String(data: encoded, encoding: .utf8) else {
+                return
+            }
+
+            callJavaScript("window.promptTapEditor?.\(name)(\(json));")
+        }
+
         func callJavaScript(_ script: String) {
             webView?.evaluateJavaScript(script)
         }
@@ -155,6 +176,20 @@ extension WebPromptEditor {
 }
 
 private extension WebPromptEditor {
+    var webShortcuts: [String: WebShortcutDescriptor] {
+        [
+            "submit": shortcutDescriptor(for: .submit),
+            "copyAll": shortcutDescriptor(for: .copy),
+            "searchGlobal": shortcutDescriptor(for: .globalSearch),
+            "searchTemplates": shortcutDescriptor(for: .templateSearch),
+            "searchReserves": shortcutDescriptor(for: .reserveSearch)
+        ]
+    }
+
+    func shortcutDescriptor(for action: KeyboardShortcutAction) -> WebShortcutDescriptor {
+        (shortcuts[action] ?? action.defaultHotkey).webShortcutDescriptor
+    }
+
     static let editorHTML = """
     <!doctype html>
     <html>
@@ -256,6 +291,14 @@ private extension WebPromptEditor {
         let appliedVim = null;
         let appliedLineWrapping = null;
         let isApplyingState = false;
+        let defaultShortcuts = {
+          submit: { key: "s", command: true, shift: false, option: false, control: false },
+          copyAll: { key: "c", command: true, shift: false, option: false, control: false },
+          searchGlobal: { key: "f", command: true, shift: false, option: false, control: false },
+          searchTemplates: { key: "t", command: true, shift: false, option: false, control: false },
+          searchReserves: { key: "r", command: true, shift: false, option: false, control: false },
+        };
+        let pendingShortcuts = defaultShortcuts;
 
         const hasSelection = () => {
           if (view) {
@@ -278,34 +321,23 @@ private extension WebPromptEditor {
 
         const installCommandShortcuts = (target) => {
           target.addEventListener("keydown", (event) => {
-            const key = event.key;
-            const lowerKey = key.toLowerCase();
-
-            if (event.metaKey && lowerKey === "s") {
+            for (const [action, shortcut] of Object.entries(pendingShortcuts)) {
+              if (!matchesShortcut(event, shortcut)) continue;
+              if (action === "copyAll" && hasSelection()) return;
               event.preventDefault();
-              post({ action: "submit" });
+              post({ action });
               return;
             }
-
-            if (event.metaKey && lowerKey === "f") {
-              event.preventDefault();
-              post({ action: "searchGlobal" });
-              return;
-            }
-
-            if (event.metaKey && lowerKey === "c" && !hasSelection()) {
-              event.preventDefault();
-              post({ action: "copyAll" });
-              return;
-            }
-
-            if (event.metaKey && lowerKey === "t") {
-              event.preventDefault();
-              post({ action: "searchTemplates" });
-              return;
-            }
-
           }, true); // Use capture phase to catch it early
+        };
+
+        const matchesShortcut = (event, shortcut) => {
+          if (!shortcut) return false;
+          return event.key.toLowerCase() === shortcut.key &&
+            event.metaKey === shortcut.command &&
+            event.shiftKey === shortcut.shift &&
+            event.altKey === shortcut.option &&
+            event.ctrlKey === shortcut.control;
         };
 
         const vimExtension = () => vimExtensionFactory({ status: true });
@@ -522,6 +554,9 @@ private extension WebPromptEditor {
             }
             pendingLineWrapping = enabled;
             applyState();
+          },
+          setShortcuts(shortcuts) {
+            pendingShortcuts = { ...defaultShortcuts, ...shortcuts };
           },
           focusEditor(enterVimInsertMode) {
             pendingFocus = true;

@@ -25,7 +25,7 @@ struct PromptTapApp: App {
                 }
         }
         .commands {
-            PromptCommands(model: model)
+            PromptCommands(model: model, settings: settings)
             CommandGroup(replacing: .newItem) { }
             CommandGroup(replacing: .help) {
                 Button("PromptTap Help") {
@@ -58,18 +58,20 @@ struct PromptTapApp: App {
 
 struct PromptCommands: Commands {
     @ObservedObject var model: PromptTapModel
+    @ObservedObject var settings: AppSettings
 
     var body: some Commands {
         CommandMenu("Prompt") {
             Button("Submit") {
                 model.submitPrompt()
             }
-            .keyboardShortcut("s", modifiers: .command)
+            .appKeyboardShortcut(settings.shortcut(for: .submit))
             .disabled(!model.canSubmit)
 
             Button("Copy") {
                 model.copyPrompt()
             }
+            .appKeyboardShortcut(settings.shortcut(for: .copy))
             .disabled(!model.isEditorSelectionEmpty || model.promptText.isEmpty)
 
             Divider()
@@ -77,17 +79,17 @@ struct PromptCommands: Commands {
             Button("Search") {
                 model.requestGlobalSearch()
             }
-            .keyboardShortcut("f", modifiers: .command)
+            .appKeyboardShortcut(settings.shortcut(for: .globalSearch))
 
             Button("Search Templates") {
                 model.requestTemplateSearch()
             }
-            .keyboardShortcut("t", modifiers: .command)
+            .appKeyboardShortcut(settings.shortcut(for: .templateSearch))
 
             Button("Search Reserves") {
                 model.requestReserveSearch()
             }
-            .keyboardShortcut("r", modifiers: .command)
+            .appKeyboardShortcut(settings.shortcut(for: .reserveSearch))
         }
     }
 }
