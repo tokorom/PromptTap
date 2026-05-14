@@ -206,11 +206,13 @@ private struct HotkeyCaptureField: NSViewRepresentable {
 private final class CapturingHotkeyField: NSView {
     var hotkey: CustomHotkey? {
         didSet {
+            displayedModifiers = hotkey?.modifiers ?? []
             needsDisplay = true
         }
     }
 
     var onCapture: ((CustomHotkey) -> Void)?
+    private var displayedModifiers: NSEvent.ModifierFlags = []
 
     override var acceptsFirstResponder: Bool {
         true
@@ -230,7 +232,13 @@ private final class CapturingHotkeyField: NSView {
         guard let captured = CustomHotkey.from(event: event) else {
             return
         }
+        displayedModifiers = captured.modifiers
         onCapture?(captured)
+    }
+
+    override func flagsChanged(with event: NSEvent) {
+        displayedModifiers = event.modifierFlags.intersection(CustomHotkey.supportedModifiers)
+        needsDisplay = true
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -247,28 +255,44 @@ private final class CapturingHotkeyField: NSView {
     }
 
     private func drawShortcutText() {
-        let actualText = hotkey?.title ?? ""
-        let placeholder = "⌃⌥⇧⌘"
         let font = NSFont.systemFont(ofSize: 18, weight: .regular)
-        let text = NSMutableAttributedString(
-            string: placeholder,
-            attributes: [
-                .font: font,
-                .foregroundColor: NSColor.placeholderTextColor.withAlphaComponent(0.4)
-            ]
-        )
+        let text = NSMutableAttributedString()
 
+        appendModifier("⌃", flag: .control, font: font, to: text)
+        appendModifier("⌥", flag: .option, font: font, to: text)
+        appendModifier("⇧", flag: .shift, font: font, to: text)
+        appendModifier("⌘", flag: .command, font: font, to: text)
+
+        let keyText = hotkey?.keyEquivalent ?? ""
         text.append(
             NSAttributedString(
-                string: actualText.isEmpty ? " Press Shortcut" : " \(actualText)",
+                string: keyText.isEmpty ? " Press Shortcut" : " \(keyText)",
                 attributes: [
                     .font: font,
-                    .foregroundColor: actualText.isEmpty ? NSColor.placeholderTextColor : NSColor.labelColor
+                    .foregroundColor: keyText.isEmpty ? NSColor.placeholderTextColor : NSColor.labelColor
                 ]
             )
         )
 
         let rect = NSRect(x: 8, y: (bounds.height - text.size().height) / 2, width: bounds.width - 16, height: text.size().height)
         text.draw(in: rect)
+    }
+
+    private func appendModifier(
+        _ symbol: String,
+        flag: NSEvent.ModifierFlags,
+        font: NSFont,
+        to text: NSMutableAttributedString
+    ) {
+        let isPressed = displayedModifiers.contains(flag)
+        text.append(
+            NSAttributedString(
+                string: symbol,
+                attributes: [
+                    .font: font,
+                    .foregroundColor: isPressed ? NSColor.labelColor : NSColor.placeholderTextColor.withAlphaComponent(0.35)
+                ]
+            )
+        )
     }
 }

@@ -25,9 +25,9 @@ struct CustomHotkey: Codable, Equatable {
     }
 
     static let defaultValue = CustomHotkey(
-        keyCode: 49,
-        modifiersRawValue: NSEvent.ModifierFlags.command.rawValue,
-        keyEquivalent: "Space"
+        keyCode: 5,
+        modifiersRawValue: NSEvent.ModifierFlags([.shift, .control]).rawValue,
+        keyEquivalent: "G"
     )
 
     static let supportedModifiers: NSEvent.ModifierFlags = [.shift, .control, .option, .command]
@@ -135,13 +135,13 @@ enum HotkeyTrigger: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .doubleShift:
-            "⇧ Shift, Shift"
+            "⇧Shift, ⇧Shift"
         case .doubleCommand:
-            "⌘ Command, Command"
+            "⌘Command, ⌘Command"
         case .doubleOption:
-            "⌥ Option, Option"
+            "⌥Option, ⌥Option"
         case .doubleControl:
-            "⌃ Control, Control"
+            "⌃Control, ⌃Control"
         case .custom:
             "Custom"
         }
