@@ -12,6 +12,8 @@ struct SettingsView: View {
     @EnvironmentObject private var settings: AppSettings
 
     @State private var showingClearConfirmation = false
+    @State private var showingCustomHotkey = false
+    @State private var draftCustomHotkey: CustomHotkey?
 
     var body: some View {
         Form {
@@ -25,9 +27,9 @@ struct SettingsView: View {
             }
 
             Section("General") {
-                Picker("Hotkey", selection: $settings.hotkey) {
+                Picker("Hotkey", selection: hotkeySelection) {
                     ForEach(HotkeyTrigger.allCases) { trigger in
-                        Text(trigger.title)
+                        Text(title(for: trigger))
                             .tag(trigger)
                     }
                 }
@@ -103,5 +105,170 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .padding(20)
         .frame(width: 420)
+        .sheet(isPresented: $showingCustomHotkey) {
+            CustomHotkeySheet(
+                draftHotkey: $draftCustomHotkey,
+                currentHotkey: settings.customHotkey,
+                onCancel: {
+                    draftCustomHotkey = nil
+                    showingCustomHotkey = false
+                },
+                onSave: { hotkey in
+                    settings.customHotkey = hotkey
+                    settings.hotkey = .custom
+                    draftCustomHotkey = nil
+                    showingCustomHotkey = false
+                }
+            )
+        }
+    }
+
+    private var hotkeySelection: Binding<HotkeyTrigger> {
+        Binding {
+            settings.hotkey
+        } set: { trigger in
+            if trigger == .custom {
+                draftCustomHotkey = settings.customHotkey
+                showingCustomHotkey = true
+            } else {
+                settings.hotkey = trigger
+            }
+        }
+    }
+
+    private func title(for trigger: HotkeyTrigger) -> String {
+        if trigger == .custom {
+            return "Custom (\(settings.customHotkey.title))"
+        }
+        return trigger.title
+    }
+}
+
+private struct CustomHotkeySheet: View {
+    @Binding var draftHotkey: CustomHotkey?
+
+    let currentHotkey: CustomHotkey
+    let onCancel: () -> Void
+    let onSave: (CustomHotkey) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Custom Hotkey")
+                .font(.headline)
+
+            HotkeyCaptureField(hotkey: $draftHotkey)
+                .frame(height: 34)
+
+            HStack {
+                Spacer()
+
+                Button("Cancel", action: onCancel)
+                    .keyboardShortcut(.cancelAction)
+
+                Button("Save") {
+                    onSave(draftHotkey ?? currentHotkey)
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(draftHotkey == nil)
+            }
+        }
+        .padding(20)
+        .frame(width: 360)
+        .onAppear {
+            draftHotkey = currentHotkey
+        }
+    }
+}
+
+private struct HotkeyCaptureField: NSViewRepresentable {
+    @Binding var hotkey: CustomHotkey?
+
+    func makeNSView(context: Context) -> CapturingHotkeyField {
+        let view = CapturingHotkeyField()
+        view.onCapture = { hotkey in
+            self.hotkey = hotkey
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: CapturingHotkeyField, context: Context) {
+        nsView.hotkey = hotkey
+        nsView.onCapture = { hotkey in
+            self.hotkey = hotkey
+        }
+
+        DispatchQueue.main.async {
+            nsView.window?.makeFirstResponder(nsView)
+        }
+    }
+}
+
+private final class CapturingHotkeyField: NSView {
+    var hotkey: CustomHotkey? {
+        didSet {
+            needsDisplay = true
+        }
+    }
+
+    var onCapture: ((CustomHotkey) -> Void)?
+
+    override var acceptsFirstResponder: Bool {
+        true
+    }
+
+    override var focusRingType: NSFocusRingType {
+        get { .exterior }
+        set {}
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        guard let captured = CustomHotkey.from(event: event) else {
+            return
+        }
+        onCapture?(captured)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.textBackgroundColor.setFill()
+        bounds.fill()
+
+        let borderColor = window?.firstResponder === self ? NSColor.keyboardFocusIndicatorColor : NSColor.separatorColor
+        let border = NSBezierPath(rect: bounds.insetBy(dx: 1, dy: 1))
+        borderColor.setStroke()
+        border.lineWidth = window?.firstResponder === self ? 2 : 1
+        border.stroke()
+
+        drawShortcutText()
+    }
+
+    private func drawShortcutText() {
+        let actualText = hotkey?.title ?? ""
+        let placeholder = "⌃⌥⇧⌘"
+        let font = NSFont.systemFont(ofSize: 18, weight: .regular)
+        let text = NSMutableAttributedString(
+            string: placeholder,
+            attributes: [
+                .font: font,
+                .foregroundColor: NSColor.placeholderTextColor.withAlphaComponent(0.4)
+            ]
+        )
+
+        text.append(
+            NSAttributedString(
+                string: actualText.isEmpty ? " Press Shortcut" : " \(actualText)",
+                attributes: [
+                    .font: font,
+                    .foregroundColor: actualText.isEmpty ? NSColor.placeholderTextColor : NSColor.labelColor
+                ]
+            )
+        )
+
+        let rect = NSRect(x: 8, y: (bounds.height - text.size().height) / 2, width: bounds.width - 16, height: text.size().height)
+        text.draw(in: rect)
     }
 }

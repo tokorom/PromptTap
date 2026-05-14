@@ -40,9 +40,9 @@ final class HotkeyController {
                 }
             }
 
-            globalKeyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] _ in
+            globalKeyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
                 Task { @MainActor in
-                    self?.reset()
+                    self?.handleKeyDown(event)
                 }
             }
         }
@@ -56,7 +56,7 @@ final class HotkeyController {
 
         localKeyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             Task { @MainActor in
-                self?.reset()
+                self?.handleKeyDown(event)
             }
             return event
         }
@@ -97,7 +97,11 @@ final class HotkeyController {
             return
         }
 
-        let targetMask = trigger.modifierFlag
+        guard let targetMask = trigger.modifierFlag else {
+            reset()
+            return
+        }
+
         let currentModifiers = event.modifierFlags.intersection([.shift, .control, .option, .command])
 
         if !currentModifiers.isEmpty && currentModifiers != targetMask {
@@ -135,5 +139,28 @@ final class HotkeyController {
                 reset()
             }
         }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) {
+        guard let settings else {
+            return
+        }
+
+        if settings.hotkey == .custom && matchesCustomHotkey(event, customHotkey: settings.customHotkey) {
+            model?.openFromShortcut()
+            reset()
+            return
+        }
+
+        reset()
+    }
+
+    private func matchesCustomHotkey(_ event: NSEvent, customHotkey: CustomHotkey) -> Bool {
+        guard !event.isARepeat else {
+            return false
+        }
+
+        let modifiers = event.modifierFlags.intersection(CustomHotkey.supportedModifiers)
+        return UInt16(event.keyCode) == customHotkey.keyCode && modifiers == customHotkey.modifiers
     }
 }
