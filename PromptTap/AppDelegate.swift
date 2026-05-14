@@ -47,7 +47,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        AppEnvironment.print()
+        AppAnalytics.setup()
+        AppAnalytics.track(event: .firstLaunch())
+    }
+
     func applicationDidBecomeActive(_ notification: Notification) {
+        AppAnalytics.track(event: .becomeActive())
     }
 
     func applicationWillTerminate(_ notification: Notification) {

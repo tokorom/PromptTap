@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F349FDF52FAC5DA30041A49E /* Version.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F349FDF42FAC5DA30041A49E /* Version.xcconfig */; };
+		F3CCFFD32FB54F4700039A3B /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = F3CCFFD22FB54F4700039A3B /* Mixpanel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3CCFFD32FB54F4700039A3B /* Mixpanel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			);
 			name = PromptTap;
 			packageProductDependencies = (
+				F3CCFFD22FB54F4700039A3B /* Mixpanel */,
 			);
 			productName = PromptTap;
 			productReference = F3BABDF72FAB38020020B589 /* PromptTap.app */;
@@ -100,6 +103,9 @@
 			);
 			mainGroup = F3BABDEE2FAB38020020B589;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F3CCFFD12FB54F4700039A3B /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F3BABDF82FAB38020020B589 /* Products */;
 			projectDirPath = "";
@@ -348,6 +354,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F3CCFFD12FB54F4700039A3B /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F3CCFFD22FB54F4700039A3B /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F3CCFFD12FB54F4700039A3B /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F3BABDEF2FAB38020020B589 /* Project object */;
 }

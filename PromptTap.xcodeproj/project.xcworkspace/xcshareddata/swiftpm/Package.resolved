@@ -1,0 +1,33 @@
+{
+  "originHash" : "652a3e5623b2e6c8c6e0e0b946c185247190377f8f46737da6c1d9062f42423e",
+  "pins" : [
+    {
+      "identity" : "json-logic-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/advantagefse/json-logic-swift",
+      "state" : {
+        "revision" : "9088eed1b26937fe13d248aa24d7632a51be28e2",
+        "version" : "1.2.4"
+      }
+    },
+    {
+      "identity" : "mixpanel-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mixpanel/mixpanel-swift",
+      "state" : {
+        "revision" : "aa0638722c88e6923f9faa312ec6372e440034d0",
+        "version" : "6.4.0"
+      }
+    },
+    {
+      "identity" : "mixpanel-swift-common",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mixpanel/mixpanel-swift-common.git",
+      "state" : {
+        "revision" : "ffd168d972a1bea7e86104f253a3e105c69217e5",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}

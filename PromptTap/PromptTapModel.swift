@@ -224,7 +224,7 @@ final class PromptTapModel: ObservableObject {
 
     func saveTemplate() {
         guard selection.count == 1, let first = selection.first else { return }
-        
+
         var finalName = templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
         if finalName.isEmpty {
             finalName = generateName(from: promptText)
@@ -389,16 +389,16 @@ final class PromptTapModel: ObservableObject {
 
     func deleteTemplates(_ templatesToDelete: Set<PromptTemplate>) {
         let idsToDelete = Set(templatesToDelete.map { $0.id })
-        
+
         for template in templatesToDelete {
             if let filename = template.filename {
                 let fileURL = templatesDirectoryURL.appendingPathComponent(filename)
                 try? FileManager.default.removeItem(at: fileURL)
             }
         }
-        
+
         templates.removeAll { idsToDelete.contains($0.id) }
-        
+
         // Update selection: remove deleted templates
         selection = selection.filter { sel in
             if case .template(let id) = sel {
@@ -406,7 +406,7 @@ final class PromptTapModel: ObservableObject {
             }
             return true
         }
-        
+
         if selection.isEmpty {
             selection = [.current]
         }
@@ -414,16 +414,16 @@ final class PromptTapModel: ObservableObject {
 
     func deleteReserves(_ reservesToDelete: Set<PromptReserve>) {
         let idsToDelete = Set(reservesToDelete.map { $0.id })
-        
+
         for reserve in reservesToDelete {
             if let filename = reserve.filename {
                 let fileURL = reservesDirectoryURL.appendingPathComponent(filename)
                 try? FileManager.default.removeItem(at: fileURL)
             }
         }
-        
+
         reserves.removeAll { idsToDelete.contains($0.id) }
-        
+
         // Update selection: remove deleted reserves
         selection = selection.filter { sel in
             if case .reserve(let id) = sel {
@@ -431,7 +431,7 @@ final class PromptTapModel: ObservableObject {
             }
             return true
         }
-        
+
         if selection.isEmpty {
             selection = [.current]
         }
@@ -522,7 +522,7 @@ final class PromptTapModel: ObservableObject {
                 addToHistory(currentPromptBuffer)
                 currentPromptBuffer = ""
             }
-            
+
             selection = [.current]
             promptText = currentPromptBuffer
 
@@ -531,9 +531,13 @@ final class PromptTapModel: ObservableObject {
             }
         }
 
+        if isHotkey {
+            AppAnalytics.track(event: .hotkeyTriggered())
+        }
+
         noteActivatedApplication(frontmost)
         NSApp.activate(ignoringOtherApps: true)
-        
+
         let mainWindows = NSApp.windows.filter { window in
             window.identifier?.rawValue.hasPrefix("main") == true
         }
@@ -545,7 +549,7 @@ final class PromptTapModel: ObservableObject {
                 window.makeKeyAndOrderFront(nil)
             }
         }
-        
+
         // Use a slight delay to ensure SwiftUI finished updating the view hierarchy
         // before requesting focus on the WebView.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -612,10 +616,10 @@ final class PromptTapModel: ObservableObject {
             let text = reserves[index].text
             reserves[index].updatedAt = Date()
             saveReserveFile(&reserves[index])
-            
+
             currentPromptBuffer = text
             promptText = text
-            
+
             sortReserves()
             selection = [.current]
         }
@@ -657,7 +661,7 @@ final class PromptTapModel: ObservableObject {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
             Self.postPasteShortcut()
-            
+
             if self.settings?.sendEnterAfterSubmit == true {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     Self.postEnterKey()
@@ -693,7 +697,7 @@ final class PromptTapModel: ObservableObject {
     func deleteHistory(at offsets: IndexSet) {
         history.remove(atOffsets: offsets)
         saveHistory()
-        
+
         // Clear selection if the deleted item was selected
         selection = selection.filter { sel in
             if case .history(let id) = sel {
@@ -710,7 +714,7 @@ final class PromptTapModel: ObservableObject {
         let ids = Set(entries.map { $0.id })
         history.removeAll { ids.contains($0.id) }
         saveHistory()
-        
+
         // Clear selection if the deleted item was selected
         selection = selection.filter { sel in
             if case .history(let id) = sel {
@@ -820,7 +824,7 @@ final class PromptTapModel: ObservableObject {
     private func saveTemplateFile(_ template: inout PromptTemplate) {
         let name = template.name
         let sanitizedName = name.components(separatedBy: CharacterSet.alphanumerics.inverted).joined(separator: "_")
-        
+
         let newFilename: String
         if let existingFilename = template.filename {
             let components = existingFilename.components(separatedBy: "_")
@@ -830,7 +834,7 @@ final class PromptTapModel: ObservableObject {
                 // If name changed, we need to create a new filename and delete the old one
                 let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
                 newFilename = "\(sanitizedName)_\(timestamp).txt"
-                
+
                 let oldFileURL = templatesDirectoryURL.appendingPathComponent(existingFilename)
                 try? FileManager.default.removeItem(at: oldFileURL)
                 template.filename = newFilename
@@ -889,7 +893,7 @@ final class PromptTapModel: ObservableObject {
     private func saveReserveFile(_ reserve: inout PromptReserve) {
         let name = reserve.name
         let sanitizedName = name.components(separatedBy: CharacterSet.alphanumerics.inverted).joined(separator: "_")
-        
+
         let newFilename: String
         if let existingFilename = reserve.filename {
             let components = existingFilename.components(separatedBy: "_")
@@ -898,7 +902,7 @@ final class PromptTapModel: ObservableObject {
             } else {
                 let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
                 newFilename = "\(sanitizedName)_\(timestamp).txt"
-                
+
                 let oldFileURL = reservesDirectoryURL.appendingPathComponent(existingFilename)
                 try? FileManager.default.removeItem(at: oldFileURL)
                 reserve.filename = newFilename
