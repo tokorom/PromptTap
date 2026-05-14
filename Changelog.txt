@@ -1,3 +1,7 @@
 ### Added
-- Custom hotkey support for triggering the app.
+- Feature to clear the current prompt after creating a new template or reserve.
 
+### Fixed
+- Critical issue where editor content became empty after creating or saving templates and reserves due to a race condition.
+- Improved reliability of editor content management by preventing premature text updates from the web editor.
+- Refined state transitions when transferring prompts to templates or reserves.
