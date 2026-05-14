@@ -36,6 +36,16 @@ struct ContentView: View {
             } detail: {
                 editorPane
             }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        model.requestGlobalSearch()
+                    } label: {
+                        Label("Global Search", systemImage: "magnifyingglass")
+                    }
+                    .shortcutHelp("Search templates, reserves, and history", shortcut: "⌘S")
+                }
+            }
 
             Divider()
 
@@ -177,12 +187,6 @@ struct ContentView: View {
             .frame(width: 540, height: 420)
         }
         .background {
-            Button("") {
-                model.requestGlobalSearch()
-            }
-            .keyboardShortcut("f", modifiers: .command)
-            .opacity(0)
-
             Button("") {
                 model.focusList()
             }
@@ -610,8 +614,8 @@ struct ContentView: View {
                 usesVimKeyBindings: settings.usesVimKeyBindings,
                 lineWrapping: settings.lineWrapping,
                 focusRequestID: model.focusRequestID,
-                onSubmit: model.isTemplateSelected ? model.saveTemplate : model.submitPrompt,
                 onCopyAll: model.copyPrompt,
+                onSearchGlobal: model.requestGlobalSearch,
                 onSearchTemplates: model.requestTemplateSearch
             )
         }
@@ -632,12 +636,8 @@ struct ContentView: View {
                     Text("Submit")
                 }
             }
-            .keyboardShortcut("s", modifiers: .command)
             .disabled(!model.canSubmit || model.isSubmitting)
-            .shortcutHelp(
-                model.canSubmit ? "Return to the previous app and paste" : "No previous app is known yet",
-                shortcut: "⌘S"
-            )
+            .help(model.canSubmit ? "Return to the previous app and paste" : "No previous app is known yet")
 
             Button {
                 model.copyPrompt()

@@ -14,7 +14,7 @@ PromptTap is built for speed. Focus on your thoughts, not the UI:
 
 1. **Invoke**: Double-tap **Command** from any input field in any app to bring up PromptTap.
 2. **Draft**: Type your prompt in the clean, distraction-free editor.
-3. **Submit**: Press **Cmd + S** to automatically return to your previous app and paste the prompt.
+3. **Reuse**: Press **Cmd + S** to search Templates, Reserves, and History, or use Submit to paste into the previous app.
 
 <p align="center">
 <img src="./docs/images/demo.gif" alt="DEMO" />
@@ -38,9 +38,8 @@ PromptTap is built for speed. Focus on your thoughts, not the UI:
 | Shortcut | Action |
 | --- | --- |
 | `Double Command` | Open PromptTap / Toggle back to target app |
-| `Cmd + S` | **Submit**: Return to previous app and paste prompt |
+| `Cmd + S` | **Global Search**: Search across Templates, Reserves, and History |
 | `Cmd + C` | **Copy**: Copy full prompt to clipboard |
-| `Cmd + F` | **Global Search**: Search across Templates, Reserves, and History |
 | `Cmd + N` | **Next Item**: Cycle forward through sidebar items |
 | `Cmd + P` | **Previous Item**: Cycle backward through sidebar items |
 | `Cmd + H` | **History Toggle**: Toggle between latest history and current prompt |

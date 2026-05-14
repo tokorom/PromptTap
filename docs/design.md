@@ -19,8 +19,11 @@
   - TemplateやReserveを編集中に「Current Prompt」に切り替えた際、TemplateやReserveに未保存の変更があれば自動的に履歴に保存する
   - アプリがすでにフォアグラウンドにある状態でホットキーが押された場合、Submit Targetのアプリをアクティブにして戻る
 - アプリを開いたらテキストエディタにフォーカスがあたりすぐに文字入力できる
-- ツールバーには以下のボタン（括弧内はショートカットキー）
-  - Submit (Command+S)
+- ナビゲーションバーには以下のボタン（括弧内はショートカットキー）
+  - Global Search (Command+S)
+    - Template、Reserve、履歴を横断検索する
+- ツールバーには以下のボタン
+  - Submit
     - このアプリに遷移する前のアプリに戻ってプロンプトの内容をペーストする
     - 遷移する前のアプリがわからなければDisabled
   - Copy (Command+C)
@@ -38,6 +41,11 @@
 - テキストエディタはVimキーバインドでの入力に切り替え可能
   - テキストエディタ部分はWKWebView+CodeMirror6で実装
   - CodeMirror6のVim modeを使うため
+- Command+Sでグローバル検索パレットを開ける
+  - 入力中のキーワードでTemplate、Reserve、履歴の候補をリアルタイムに絞り込む
+  - Enterで選択中の候補をPromptとしてCurrent Promptに適用する。履歴の場合はその履歴を選択する
+  - 日本語などの文字入力の変換確定中のEnterは候補選択として扱わない
+  - 入力欄にフォーカスがある状態でも上下キーまたはCommand+P/Command+Nで候補選択を移動できる
 - Command+TでTemplate検索パレットを開ける
   - 入力中のキーワードでTemplate候補をリアルタイムに絞り込む
   - 候補はTemplate nameの前方一致、Template nameの部分一致、本文の部分一致、更新日時が新しい順で優先表示する

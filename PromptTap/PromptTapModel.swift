@@ -989,7 +989,7 @@ final class PromptTapModel: ObservableObject {
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: enterKeyCode, keyDown: true)
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: enterKeyCode, keyDown: false)
 
-        // Explicitly clear flags to ensure Command (from Command+S) is not included
+        // Explicitly clear flags to ensure any pressed modifier is not included.
         keyDown?.flags = []
         keyUp?.flags = []
 

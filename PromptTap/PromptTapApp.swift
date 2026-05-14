@@ -61,10 +61,16 @@ struct PromptCommands: Commands {
 
     var body: some Commands {
         CommandMenu("Prompt") {
+            Button("Global Search") {
+                model.requestGlobalSearch()
+            }
+            .keyboardShortcut("s", modifiers: .command)
+
+            Divider()
+
             Button("Submit") {
                 model.submitPrompt()
             }
-            .keyboardShortcut("s", modifiers: .command)
             .disabled(!model.canSubmit)
 
             Button("Copy") {
