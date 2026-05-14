@@ -252,6 +252,7 @@ private extension WebPromptEditor {
         let pendingVimInsert = false;
         let appliedVim = null;
         let appliedLineWrapping = null;
+        let isApplyingState = false;
 
         const hasSelection = () => {
           if (view) {
@@ -326,7 +327,12 @@ private extension WebPromptEditor {
             }
 
             if (needsDispatch) {
-              view.dispatch(transaction);
+              isApplyingState = true;
+              try {
+                view.dispatch(transaction);
+              } finally {
+                isApplyingState = false;
+              }
             }
 
             view.dom.classList.toggle("prompttap-lineWrapping", pendingLineWrapping);
@@ -401,7 +407,11 @@ private extension WebPromptEditor {
 
           const updateListener = EditorView.updateListener.of((update) => {
             if (update.docChanged) {
-              notifyText(update.state.doc.toString());
+              const currentText = update.state.doc.toString();
+              pendingText = currentText;
+              if (!isApplyingState) {
+                notifyText(currentText);
+              }
             }
             if (update.selectionSet || update.docChanged || update.focusChanged) {
               notifySelection();
