@@ -19,20 +19,34 @@ struct KeyboardShortcutsSettingsView: View {
         Form {
             Section("Keyboard Shortcuts") {
                 ForEach(KeyboardShortcutAction.allCases) { action in
-                    Button {
-                        draftEditingHotkey = shortcut(for: action)
-                        editingAction = action
-                    } label: {
-                        HStack {
-                            Text(action.title)
-                            Spacer()
-                            Text(shortcut(for: action).title)
-                                .foregroundStyle(hasChange(for: action) ? Color.accentColor : Color.secondary)
+                    HStack(spacing: 8) {
+                        Button {
+                            draftEditingHotkey = shortcut(for: action)
+                            editingAction = action
+                        } label: {
+                            HStack {
+                                Text(action.title)
+                                Spacer()
+                                Text(shortcut(for: action).title)
+                                    .foregroundStyle(hasChange(for: action) ? Color.accentColor : Color.secondary)
+                            }
                         }
+                        .buttonStyle(.plain)
                         .padding(10)
+                        .frame(maxWidth: .infinity)
                         .contentShape(Rectangle())
+
+                        if !isDefault(for: action) {
+                            Button {
+                                draftShortcuts[action] = action.defaultHotkey
+                            } label: {
+                                Label("Default", systemImage: "arrow.counterclockwise")
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                            .help("Restore default shortcut")
+                        }
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
@@ -91,6 +105,10 @@ struct KeyboardShortcutsSettingsView: View {
 
     private func hasChange(for action: KeyboardShortcutAction) -> Bool {
         shortcut(for: action) != settings.keyboardShortcuts[action]
+    }
+
+    private func isDefault(for action: KeyboardShortcutAction) -> Bool {
+        shortcut(for: action) == action.defaultHotkey
     }
 }
 
