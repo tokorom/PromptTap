@@ -165,6 +165,11 @@ final class PromptTapModel: ObservableObject {
     }
 
     @Published var shouldSuppressEditorFocusOnNextSelection = false
+    @Published var shouldOpenKeyboardShortcutsWindow = false
+
+    func openKeyboardShortcutsWindow() {
+        shouldOpenKeyboardShortcutsWindow = true
+    }
 
     private func updatePromptTextFromSelection() {
         guard let lastSelection = selection.first else { return }

@@ -53,6 +53,34 @@ struct PromptTapApp: App {
                 .environmentObject(model)
                 .environmentObject(settings)
         }
+
+        WindowGroup(id: "keyboard-shortcuts") {
+            NavigationStack {
+                KeyboardShortcutsSettingsView()
+                    .environmentObject(model)
+                    .environmentObject(settings)
+            }
+        }
+        .windowResizability(.contentSize)
+        .onChange(of: model.shouldOpenKeyboardShortcutsWindow) { _, newValue in
+            if newValue {
+                defer {
+                    model.shouldOpenKeyboardShortcutsWindow = false
+                }
+
+                let id = "keyboard-shortcuts"
+                if let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix("\(id)-") ?? false }) {
+                    if window.isMiniaturized {
+                        window.deminiaturize(nil)
+                    }
+
+                    window.makeKeyAndOrderFront(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                } else {
+                    openWindow(id: id)
+                }
+            }
+        }
     }
 }
 

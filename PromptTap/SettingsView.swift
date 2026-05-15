@@ -41,9 +41,18 @@ struct SettingsView: View {
                     }
                 }
 
-                NavigationLink(destination: KeyboardShortcutsSettingsView()) {
-                    Text("Keyboard Shortcuts")
+                Button {
+                    model.openKeyboardShortcutsWindow()
+                } label: {
+                    HStack {
+                        Text("Keyboard Shortcuts")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
 
                 Toggle("Launch at login", isOn: $settings.launchAtLogin)
             }

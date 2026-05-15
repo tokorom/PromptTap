@@ -39,15 +39,15 @@ struct KeyboardShortcutsSettingsView: View {
         .padding(20)
         .frame(width: 420)
         .navigationTitle("Keyboard Shortcuts")
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    settings.keyboardShortcuts = draftShortcuts
-                    dismiss()
-                }
-                .disabled(!hasChanges)
-            }
-        }
+        // .toolbar {
+        //     ToolbarItem(placement: .confirmationAction) {
+        //         Button("Save") {
+        //             settings.keyboardShortcuts = draftShortcuts
+        //             dismiss()
+        //         }
+        //         .disabled(!hasChanges)
+        //     }
+        // }
         .onAppear {
             draftShortcuts = settings.keyboardShortcuts
         }
