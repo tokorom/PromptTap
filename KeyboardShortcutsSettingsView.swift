@@ -151,11 +151,11 @@ extension KeyboardShortcutsSettingsView {
                 }
 
                 let alert = NSAlert()
-                alert.messageText = "ウィンドウを閉じますか？"
-                alert.informativeText = "未保存の変更が失われる可能性があります。"
+                alert.messageText = "Discard keyboard shortcut changes?"
+                alert.informativeText = "Your unsaved keyboard shortcut changes will not be applied."
                 alert.alertStyle = .warning
-                alert.addButton(withTitle: "閉じる")
-                alert.addButton(withTitle: "キャンセル")
+                alert.addButton(withTitle: "Discard Changes")
+                alert.addButton(withTitle: "Cancel")
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     shouldReallyClose = true
