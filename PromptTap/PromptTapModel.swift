@@ -188,10 +188,11 @@ final class PromptTapModel: ObservableObject {
         guard let lastSelection = selection.first else { return }
 
         let suppressFocus = shouldSuppressEditorFocusOnNextSelection
-        shouldSuppressEditorFocusOnNextSelection = false
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
+
+            self.shouldSuppressEditorFocusOnNextSelection = false
 
             switch lastSelection {
             case .current:
@@ -250,7 +251,6 @@ final class PromptTapModel: ObservableObject {
         var finalName = templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
         if finalName.isEmpty {
             finalName = generateName(from: promptText)
-            templateNameBuffer = finalName
         }
 
         switch first {
@@ -267,12 +267,17 @@ final class PromptTapModel: ObservableObject {
             saveTemplateFile(&newTemplate)
             templates.insert(newTemplate, at: 0)
             sortTemplates()
-            selection = [.template(newTemplate.id)]
+            DispatchQueue.main.async { [weak self] in
+                self?.selection = [.template(newTemplate.id)]
+            }
         default:
             break
         }
+
         DispatchQueue.main.async { [weak self] in
-            self?.saveRequestID += 1
+            guard let self else { return }
+            self.templateNameBuffer = finalName
+            self.saveRequestID += 1
         }
     }
 
@@ -292,20 +297,23 @@ final class PromptTapModel: ObservableObject {
                 reserves[index].updatedAt = Date()
                 saveReserveFile(&reserves[index])
                 sortReserves()
-                templateNameBuffer = finalName
             }
         case .newReserve:
             var newReserve = PromptReserve(name: finalName, text: text)
             saveReserveFile(&newReserve)
             reserves.insert(newReserve, at: 0)
             sortReserves()
-            selection = [.reserve(newReserve.id)]
-            templateNameBuffer = finalName
+            DispatchQueue.main.async { [weak self] in
+                self?.selection = [.reserve(newReserve.id)]
+            }
         default:
             break
         }
+
         DispatchQueue.main.async { [weak self] in
-            self?.saveRequestID += 1
+            guard let self else { return }
+            self.templateNameBuffer = finalName
+            self.saveRequestID += 1
         }
     }
 
@@ -373,23 +381,32 @@ final class PromptTapModel: ObservableObject {
             }
         }
 
-        currentPromptBuffer = promptText
-        selection = [.current]
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.currentPromptBuffer = self.promptText
+            self.selection = [.current]
+        }
     }
 
     func applyTemplate(_ template: PromptTemplate) {
         if let index = templates.firstIndex(where: { $0.id == template.id }) {
             templates[index].updatedAt = Date()
             saveTemplateFile(&templates[index])
-            currentPromptBuffer = templates[index].text
-            promptText = templates[index].text
-            sortTemplates()
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.currentPromptBuffer = self.templates[index].text
+                self.promptText = self.templates[index].text
+                self.sortTemplates()
+                self.selection = [.current]
+            }
         } else {
-            currentPromptBuffer = template.text
-            promptText = template.text
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.currentPromptBuffer = template.text
+                self.promptText = template.text
+                self.selection = [.current]
+            }
         }
-
-        selection = [.current]
     }
 
     private func sortTemplates() {
@@ -413,8 +430,11 @@ final class PromptTapModel: ObservableObject {
     }
 
     func applyHistory() {
-        currentPromptBuffer = promptText
-        selection = [.current]
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.currentPromptBuffer = self.promptText
+            self.selection = [.current]
+        }
     }
 
     func deleteTemplates(_ templatesToDelete: Set<PromptTemplate>) {
@@ -429,16 +449,19 @@ final class PromptTapModel: ObservableObject {
 
         templates.removeAll { idsToDelete.contains($0.id) }
 
-        // Update selection: remove deleted templates
-        selection = selection.filter { sel in
-            if case .template(let id) = sel {
-                return !idsToDelete.contains(id)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Update selection: remove deleted templates
+            self.selection = self.selection.filter { sel in
+                if case .template(let id) = sel {
+                    return !idsToDelete.contains(id)
+                }
+                return true
             }
-            return true
-        }
 
-        if selection.isEmpty {
-            selection = [.current]
+            if self.selection.isEmpty {
+                self.selection = [.current]
+            }
         }
     }
 
@@ -454,16 +477,19 @@ final class PromptTapModel: ObservableObject {
 
         reserves.removeAll { idsToDelete.contains($0.id) }
 
-        // Update selection: remove deleted reserves
-        selection = selection.filter { sel in
-            if case .reserve(let id) = sel {
-                return !idsToDelete.contains(id)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Update selection: remove deleted reserves
+            self.selection = self.selection.filter { sel in
+                if case .reserve(let id) = sel {
+                    return !idsToDelete.contains(id)
+                }
+                return true
             }
-            return true
-        }
 
-        if selection.isEmpty {
-            selection = [.current]
+            if self.selection.isEmpty {
+                self.selection = [.current]
+            }
         }
     }
 
@@ -592,10 +618,13 @@ final class PromptTapModel: ObservableObject {
         if !trimmed.isEmpty && !history.contains(where: { $0.text == currentPromptBuffer }) {
             addToHistory(currentPromptBuffer)
         }
-        currentPromptBuffer = ""
-        selection = [.current]
-        updatePromptTextFromSelection()
-        focusEditor()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.currentPromptBuffer = ""
+            self.selection = [.current]
+            self.updatePromptTextFromSelection()
+            self.focusEditor()
+        }
     }
 
     func returnToTarget() {
@@ -673,11 +702,14 @@ final class PromptTapModel: ObservableObject {
             reserves[index].updatedAt = Date()
             saveReserveFile(&reserves[index])
 
-            currentPromptBuffer = text
-            promptText = text
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.currentPromptBuffer = text
+                self.promptText = text
 
-            sortReserves()
-            selection = [.current]
+                self.sortReserves()
+                self.selection = [.current]
+            }
         }
     }
 
@@ -697,8 +729,10 @@ final class PromptTapModel: ObservableObject {
         addToHistory(promptText, id: updateID)
 
         if isCurrentPromptSelected {
-            currentPromptBuffer = ""
-            promptText = ""
+            DispatchQueue.main.async { [weak self] in
+                self?.currentPromptBuffer = ""
+                self?.promptText = ""
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -734,19 +768,23 @@ final class PromptTapModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        if let id = id {
-            history.removeAll { $0.id == id }
-        }
-        if let existingIndex = history.firstIndex(where: { $0.text == text }) {
-            history.remove(at: existingIndex)
-        }
-        let entry = PromptHistory(id: id ?? UUID(), text: text)
-        history.insert(entry, at: 0)
-        shrinkHistory(to: settings?.historyLimit ?? 100)
-        saveHistory()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
 
-        if id != nil {
-            selection = [.history(entry.id)]
+            if let id = id {
+                self.history.removeAll { $0.id == id }
+            }
+            if let existingIndex = self.history.firstIndex(where: { $0.text == text }) {
+                self.history.remove(at: existingIndex)
+            }
+            let entry = PromptHistory(id: id ?? UUID(), text: text)
+            self.history.insert(entry, at: 0)
+            self.shrinkHistory(to: self.settings?.historyLimit ?? 100)
+            self.saveHistory()
+
+            if id != nil {
+                self.selection = [.history(entry.id)]
+            }
         }
     }
 
@@ -754,15 +792,18 @@ final class PromptTapModel: ObservableObject {
         history.remove(atOffsets: offsets)
         saveHistory()
 
-        // Clear selection if the deleted item was selected
-        selection = selection.filter { sel in
-            if case .history(let id) = sel {
-                return history.contains(where: { $0.id == id })
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Clear selection if the deleted item was selected
+            self.selection = self.selection.filter { sel in
+                if case .history(let id) = sel {
+                    return self.history.contains(where: { $0.id == id })
+                }
+                return true
             }
-            return true
-        }
-        if selection.isEmpty {
-            selection = [.current]
+            if self.selection.isEmpty {
+                self.selection = [.current]
+            }
         }
     }
 
@@ -771,15 +812,18 @@ final class PromptTapModel: ObservableObject {
         history.removeAll { ids.contains($0.id) }
         saveHistory()
 
-        // Clear selection if the deleted item was selected
-        selection = selection.filter { sel in
-            if case .history(let id) = sel {
-                return !ids.contains(id)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            // Clear selection if the deleted item was selected
+            self.selection = self.selection.filter { sel in
+                if case .history(let id) = sel {
+                    return !ids.contains(id)
+                }
+                return true
             }
-            return true
-        }
-        if selection.isEmpty {
-            selection = [.current]
+            if self.selection.isEmpty {
+                self.selection = [.current]
+            }
         }
     }
 
@@ -807,7 +851,9 @@ final class PromptTapModel: ObservableObject {
         shrinkHistory(to: settings?.historyLimit ?? 100)
         saveHistory()
 
-        selection = [.history(newEntry.id)]
+        DispatchQueue.main.async { [weak self] in
+            self?.selection = [.history(newEntry.id)]
+        }
     }
 
     private func shrinkHistory(to limit: Int) {
