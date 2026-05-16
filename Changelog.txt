@@ -1,3 +1,12 @@
 ### Added
 - Configurable keyboard shortcuts for app actions.
+- Conflict detection and flagging for keyboard shortcuts.
+- Reset buttons to restore default keyboard shortcut settings.
+- Action toolbar for History items (Finder, Delete, Prompt, Save), matching Template and Reserve views.
+- Manual saving support for History and Reserve items.
 
+### Fixed
+- Improved settings navigation using standard NavigationStack.
+- Refined UI layouts for settings and keyboard shortcut views.
+- Translated keyboard shortcut alerts and messages to English.
+- Standardized editing experience across all prompt types (Templates, Reserves, and History).

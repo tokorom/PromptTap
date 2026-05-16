@@ -593,6 +593,55 @@ struct ContentView: View {
                     }
                     .padding(.trailing, 8)
                     .zIndex(1)
+                } else if let lastSelection = model.selection.first,
+                   case .history(let id) = lastSelection,
+                   let entry = model.history.first(where: { $0.id == id }) {
+                    HStack(spacing: 8) {
+                        Button {
+                            model.revealHistoryInFinder()
+                        } label: {
+                            Image(systemName: "folder")
+                        }
+                        .buttonStyle(.bordered)
+                        .help("Show in Finder")
+
+                        Button {
+                            entriesToDelete = [entry]
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.bordered)
+                        .foregroundStyle(.red)
+                        .help("Delete History")
+
+                        Divider()
+                            .frame(height: 16)
+
+                        Button {
+                            model.applyHistory()
+                        } label: {
+                            Label("Prompt", systemImage: "arrow.right.square")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .appKeyboardShortcut(settings.shortcut(for: .promptSelection))
+                        .disabled(model.promptText.isEmpty)
+                        .fixedSize()
+                        .shortcutHelp("Prompt with this history", shortcut: shortcutTitle(.promptSelection))
+
+                        Button {
+                            model.saveHistoryItem()
+                        } label: {
+                            Label("Save", systemImage: "square.and.arrow.down")
+                        }
+                        .buttonStyle(.bordered)
+                        .appKeyboardShortcut(settings.shortcut(for: .saveSelection))
+                        .disabled(model.promptText.isEmpty)
+                        .fixedSize()
+                        .shortcutHelp("Save this history", shortcut: shortcutTitle(.saveSelection), placement: settings.usesVimKeyBindings ? .trailing : .leading)
+                    }
+                    .padding(.trailing, 8)
+                    .zIndex(1)
                 }
                 if settings.usesVimKeyBindings {
                     Label("Vim", systemImage: "keyboard")
@@ -615,7 +664,17 @@ struct ContentView: View {
                 lineWrapping: settings.lineWrapping,
                 shortcuts: settings.keyboardShortcuts,
                 focusRequestID: model.focusRequestID,
-                onSubmit: model.isTemplateSelected ? model.saveTemplate : model.submitPrompt,
+                onSubmit: {
+                    if model.isTemplateSelected {
+                        model.saveTemplate()
+                    } else if model.isReserveSelected {
+                        model.saveReserve()
+                    } else if model.isHistorySelected {
+                        model.saveHistoryItem()
+                    } else {
+                        model.submitPrompt()
+                    }
+                },
                 onCopyAll: model.copyPrompt,
                 onSearchGlobal: model.requestGlobalSearch,
                 onSearchTemplates: model.requestTemplateSearch,

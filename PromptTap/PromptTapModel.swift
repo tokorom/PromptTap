@@ -146,6 +146,16 @@ final class PromptTapModel: ObservableObject {
         return false
     }
 
+    var isHistorySelected: Bool {
+        if let first = selection.first {
+            switch first {
+            case .history: return true
+            default: return false
+            }
+        }
+        return false
+    }
+
     var canSubmit: Bool {
         previousApplication != nil && !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -209,18 +219,17 @@ final class PromptTapModel: ObservableObject {
             promptText = text
             if isCurrentPromptSelected {
                 currentPromptBuffer = text
-            } else if selection.count == 1, case .history(let id) = selection.first {
-                if let index = history.firstIndex(where: { $0.id == id }) {
-                    if history[index].text != text {
-                        history[index] = PromptHistory(id: id, text: text, date: Date())
-                        saveHistory()
-                    }
-                }
-            } else if selection.count == 1, case .template = selection.first {
-                // For templates, we don't auto-save to allow cancel/discard if needed?
-                // But the requirement says "Save button for updating", so we just keep it in promptText for now.
-            } else if selection.count == 1, case .reserve = selection.first {
-                // Same as templates
+            }
+        }
+    }
+
+    func saveHistoryItem() {
+        guard selection.count == 1, case .history(let id) = selection.first else { return }
+
+        if let index = history.firstIndex(where: { $0.id == id }) {
+            if history[index].text != promptText {
+                history[index] = PromptHistory(id: id, text: promptText, date: Date())
+                saveHistory()
             }
         }
     }
@@ -381,6 +390,15 @@ final class PromptTapModel: ObservableObject {
         guard let filename = reserve.filename else { return }
         let fileURL = reservesDirectoryURL.appendingPathComponent(filename)
         NSWorkspace.shared.activateFileViewerSelecting([fileURL])
+    }
+
+    func revealHistoryInFinder() {
+        NSWorkspace.shared.activateFileViewerSelecting([historyURL])
+    }
+
+    func applyHistory() {
+        currentPromptBuffer = promptText
+        selection = [.current]
     }
 
     func deleteTemplates(_ templatesToDelete: Set<PromptTemplate>) {
