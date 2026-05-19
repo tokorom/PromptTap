@@ -85,6 +85,24 @@ brew install --cask prompttap
 - **履歴**: 保持する履歴アイテムの最大数を設定。
 - **ストレージ**: テンプレートとリザーブをプレーンな `.txt` ファイルとして保存するカスタムフォルダを選択でき、同期や外部エディタでの編集が容易になります。
 
+## EDITOR / VISUAL CLI
+
+PromptTapのアプリバンドル内には、 `prompttap` CLI 実行ファイルが含まれています：
+
+```bash
+ln -s /Applications/PromptTap.app/Contents/MacOS/prompttap /usr/local/bin/prompttap
+export EDITOR="prompttap --wait"
+export VISUAL="prompttap --wait"
+```
+
+VS Codeの `code --wait` のように使用できます：
+
+```bash
+prompttap --wait /path/to/file
+```
+
+PromptTapはファイルをGUIエディタで開き、 `--wait` が有効な間は呼び出し元のシェルをブロックし、アプリで保存して閉じると復帰します。これは Claude Code, Gemini CLI, Codex CLI や、シェルの `Ctrl+X Ctrl+E` / `Ctrl+G` などのワークフローでの利用を想定しています。
+
 ## Changelog
 
 リリースノートとダウンロードリンクは [GitHub Releases ページ](https://github.com/tokorom/PromptTap/releases) を参照してください。
