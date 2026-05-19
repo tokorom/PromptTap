@@ -228,6 +228,10 @@ final class PromptTapModel: ObservableObject {
     @Published private(set) var reserveSearchRequestID = 0
     @Published private(set) var activeExternalEditSession: ExternalEditSession?
 
+    var isTargetSet: Bool {
+        previousApplication != nil
+    }
+
     private var previousApplication: NSRunningApplication?
     private var settings: AppSettings?
     private var cancellables = Set<AnyCancellable>()
@@ -656,6 +660,10 @@ final class PromptTapModel: ObservableObject {
     }
 
     func setTarget(_ application: NSRunningApplication) {
+        guard application.bundleIdentifier != Bundle.main.bundleIdentifier else {
+            return
+        }
+
         previousApplication = application
         previousApplicationName = application.localizedName
         previousApplicationIcon = application.icon
@@ -696,6 +704,13 @@ final class PromptTapModel: ObservableObject {
         }
 
         let frontmost = NSWorkspace.shared.frontmostApplication
+        let targetApp: NSRunningApplication? = {
+            if let frontmost, frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
+                return frontmost
+            }
+            return targetHistory.first
+        }()
+
         if isHotkey {
             let buffer = currentPromptBuffer
             let needsClear = !buffer.isEmpty && !history.contains(where: { $0.text == buffer })
@@ -708,12 +723,12 @@ final class PromptTapModel: ObservableObject {
                 }
             }
 
-            if let frontmost {
-                setTarget(frontmost)
+            if let targetApp {
+                setTarget(targetApp)
             }
         } else if previousApplication == nil {
-            if let frontmost {
-                setTarget(frontmost)
+            if let targetApp {
+                setTarget(targetApp)
             }
         }
 

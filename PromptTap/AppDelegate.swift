@@ -75,6 +75,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         AppAnalytics.track(event: .becomeActive())
+
+        Task { @MainActor [weak model] in
+            if model?.isTargetSet == false {
+                model?.openFromShortcut(isHotkey: false)
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
