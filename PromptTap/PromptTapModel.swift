@@ -816,8 +816,16 @@ final class PromptTapModel: ObservableObject {
             )
 
             activeExternalEditSession = session
+
+            let buffer = currentPromptBuffer
+            let needsClear = !buffer.isEmpty && !history.contains(where: { $0.text == buffer })
+
             requestSelection([.current]) { [weak self] in
-                self?.currentPromptBuffer = originalText
+                guard let self else { return }
+                if needsClear {
+                    self.addToHistory(buffer)
+                }
+                self.currentPromptBuffer = originalText
             }
             openFromExternalEdit()
         } catch {
