@@ -1,9 +1,7 @@
 ### Added
-- Configurable keyboard shortcut for deleting the current selection (default: Shift+Command+D).
-- Confirmation dialog for unsaved changes when navigating between items to prevent data loss.
+- Support CUI command
+- Automatically set Submit target to the previous application when opening the app without a hotkey if unset.
+- Auto-save unsaved prompt to History when opening a file via CLI.
 
 ### Fixed
-- Selecting a Reserve from search results now opens it for editing instead of applying it to current.
-- Fixed issue where editor content would disappear prematurely during navigation confirmation.
-- Improved confirmation dialog consistency across Templates, Reserves, and History items.
-- Ensured Submit target is set when opening the app via non-hotkey methods if currently empty.
+- Improved detection of the target application when opening PromptTap via the Dock or non-hotkey methods.
