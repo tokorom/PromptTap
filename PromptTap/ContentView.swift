@@ -526,7 +526,7 @@ struct ContentView: View {
                     Text(entry.date.formatted(date: .numeric, time: .shortened))
                         .font(.headline)
                 } else {
-                    Text("Current Prompt")
+                    Text(model.activeExternalEditSession.map { "External Edit: \(URL(fileURLWithPath: $0.filePath).lastPathComponent)" } ?? "Current Prompt")
                         .font(.headline)
                 }
                 Spacer()
@@ -764,15 +764,17 @@ struct ContentView: View {
                         ProgressView()
                             .controlSize(.small)
                     } else {
-                        Image(systemName: "paperplane")
+                        Image(systemName: model.activeExternalEditSession == nil ? "paperplane" : "square.and.arrow.down")
                     }
-                    Text("Submit")
+                    Text(model.activeExternalEditSession == nil ? "Submit" : "Save & Close")
                 }
             }
             .appKeyboardShortcut(settings.shortcut(for: .submit))
             .disabled(!model.canSubmit || model.isSubmitting)
             .shortcutHelp(
-                model.canSubmit ? "Return to the previous app and paste" : "No previous app is known yet",
+                model.activeExternalEditSession == nil
+                    ? (model.canSubmit ? "Return to the previous app and paste" : "No previous app is known yet")
+                    : "Save the file and return to the waiting CLI",
                 shortcut: shortcutTitle(.submit)
             )
 

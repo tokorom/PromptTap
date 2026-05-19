@@ -85,6 +85,24 @@ In the **Settings** (`Cmd + ,`), you can customize:
 - **History**: Set the maximum number of history items to retain.
 - **Storage**: Choose a custom folder to store your Templates and Reserves as plain `.txt` files for easy syncing or external editing.
 
+## EDITOR / VISUAL CLI
+
+PromptTap includes a `prompttap` CLI executable inside the app bundle:
+
+```bash
+ln -s /Applications/PromptTap.app/Contents/MacOS/prompttap /usr/local/bin/prompttap
+export EDITOR="prompttap --wait"
+export VISUAL="prompttap --wait"
+```
+
+Use it like VS Code's `code --wait`:
+
+```bash
+prompttap --wait /path/to/file
+```
+
+PromptTap opens the file in the GUI editor, blocks the calling shell while `--wait` is active, and returns after you save and close from the app. This is intended for Claude Code, Gemini CLI, Codex CLI, and shell workflows such as `Ctrl+X Ctrl+E` / `Ctrl+G`.
+
 ## Changelog
 
 Release notes and download links are available on the

@@ -1,0 +1,98 @@
+#!/bin/zsh
+
+set -u
+
+usage() {
+  print -u2 "usage: prompttap [--wait] FILE"
+}
+
+json_string() {
+  /usr/bin/printf "%s" "$1" | /usr/bin/perl -MJSON::PP=encode_json -0ne 'print encode_json($_)'
+}
+
+wait_for_socket() {
+  local socket_path="$1"
+  local i
+  for i in {1..80}; do
+    [[ -S "$socket_path" ]] && return 0
+    /bin/sleep 0.05
+  done
+  return 1
+}
+
+wait_mode=false
+files=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --wait)
+      wait_mode=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      while [[ $# -gt 0 ]]; do
+        files+=("$1")
+        shift
+      done
+      ;;
+    -*)
+      print -u2 "prompttap: unknown option: $1"
+      usage
+      exit 2
+      ;;
+    *)
+      files+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#files[@]} -lt 1 ]]; then
+  usage
+  exit 2
+fi
+
+file="${files[1]}"
+parent="$(/usr/bin/dirname "$file")"
+if [[ ! -d "$parent" ]]; then
+  print -u2 "prompttap: parent directory does not exist: $parent"
+  exit 1
+fi
+
+if ! absolute_file="$(cd "$parent" 2>/dev/null && /bin/pwd -P)/$(/usr/bin/basename "$file")"; then
+  print -u2 "prompttap: failed to resolve path: $file"
+  exit 1
+fi
+
+script_dir="${0:A:h}"
+app_dir="${script_dir:h:h}"
+socket_path="/tmp/prompttap-$(/usr/bin/id -u).sock"
+
+if [[ ! -S "$socket_path" ]]; then
+  /usr/bin/open -a "$app_dir" >/dev/null 2>&1
+fi
+
+if ! wait_for_socket "$socket_path"; then
+  print -u2 "prompttap: IPC socket is unavailable: $socket_path"
+  exit 1
+fi
+
+session_id="$(/usr/bin/uuidgen)"
+request='{"type":"open-session","sessionId":'$(json_string "$session_id")',"filePath":'$(json_string "$absolute_file")',"wait":'$wait_mode'}'
+
+if ! response="$(/usr/bin/printf "%s\n" "$request" | /usr/bin/nc -U "$socket_path")"; then
+  print -u2 "prompttap: IPC connection failed"
+  exit 1
+fi
+
+if [[ "$wait_mode" != true ]]; then
+  exit 0
+fi
+
+exit_code="$(/usr/bin/printf "%s" "$response" | /usr/bin/perl -MJSON::PP=decode_json -0777 -e '$s = <>; eval { $v = decode_json($s)->{exitCode}; print defined($v) ? $v : 1 } or print 1')"
+exit "$exit_code"

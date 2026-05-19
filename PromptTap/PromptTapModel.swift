@@ -226,6 +226,7 @@ final class PromptTapModel: ObservableObject {
     @Published private(set) var globalSearchRequestID = 0
     @Published private(set) var templateSearchRequestID = 0
     @Published private(set) var reserveSearchRequestID = 0
+    @Published private(set) var activeExternalEditSession: ExternalEditSession?
 
     private var previousApplication: NSRunningApplication?
     private var settings: AppSettings?
@@ -266,14 +267,17 @@ final class PromptTapModel: ObservableObject {
     }
 
     var canSubmit: Bool {
-        previousApplication != nil && !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        activeExternalEditSession != nil || (previousApplication != nil && !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 
     var statusText: String {
+        if let activeExternalEditSession {
+            return "Editing: \(URL(fileURLWithPath: activeExternalEditSession.filePath).lastPathComponent)"
+        }
         if let previousApplicationName {
-            "Submit target: \(previousApplicationName)"
+            return "Submit target: \(previousApplicationName)"
         } else {
-            "Open PromptTap from another app to enable Submit"
+            return "Open PromptTap from another app to enable Submit"
         }
     }
 
@@ -754,6 +758,138 @@ final class PromptTapModel: ObservableObject {
         previousApplication?.activate(options: [.activateAllWindows])
     }
 
+    func openExternalEditSession(_ request: ExternalEditOpenRequest, waitingClient: PromptTapIPCWaitingClient?) {
+        let fileURL = URL(fileURLWithPath: request.filePath)
+        let parentURL = fileURL.deletingLastPathComponent()
+
+        guard FileManager.default.fileExists(atPath: parentURL.path) else {
+            completeExternalEditSession(
+                sessionId: request.sessionId,
+                waitingClient: waitingClient,
+                result: .error,
+                exitCode: 1,
+                message: "Parent directory does not exist"
+            )
+            return
+        }
+
+        do {
+            let exists = FileManager.default.fileExists(atPath: fileURL.path)
+            let attributes = exists ? try FileManager.default.attributesOfItem(atPath: fileURL.path) : [:]
+            let originalMtime = attributes[.modificationDate] as? Date
+            let originalData = exists ? try Data(contentsOf: fileURL) : Data()
+            let newline = Self.detectNewline(in: originalData) ?? "\n"
+            let originalText: String
+
+            if originalData.isEmpty {
+                originalText = ""
+            } else if let text = String(data: originalData, encoding: .utf8) {
+                originalText = text
+            } else {
+                throw CocoaError(.fileReadInapplicableStringEncoding)
+            }
+
+            let session = ExternalEditSession(
+                sessionId: request.sessionId,
+                filePath: fileURL.path,
+                originalMtime: originalMtime,
+                originalExists: exists,
+                originalText: originalText,
+                newline: newline,
+                completionState: .pending,
+                waitingClient: waitingClient
+            )
+
+            activeExternalEditSession = session
+            requestSelection([.current]) { [weak self] in
+                self?.currentPromptBuffer = originalText
+            }
+            openFromExternalEdit()
+        } catch {
+            completeExternalEditSession(
+                sessionId: request.sessionId,
+                waitingClient: waitingClient,
+                result: .error,
+                exitCode: 1,
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    func completeActiveExternalEditSessionBySaving() {
+        guard var session = activeExternalEditSession else {
+            return
+        }
+
+        do {
+            let output = Self.textForWriting(promptText, preserving: session.newline)
+            try output.write(to: URL(fileURLWithPath: session.filePath), atomically: true, encoding: .utf8)
+
+            let result: ExternalEditCompletionState = output == session.originalText ? .unchanged : .saved
+            session.completionState = result
+            activeExternalEditSession = nil
+            session.waitingClient?.complete(
+                ExternalEditSessionCompleteResponse(sessionId: session.sessionId, result: result, exitCode: 0)
+            )
+            saveRequestID += 1
+            shouldCloseMainWindow = true
+        } catch {
+            session.completionState = .error
+            activeExternalEditSession = nil
+            session.waitingClient?.complete(
+                ExternalEditSessionCompleteResponse(
+                    sessionId: session.sessionId,
+                    result: .error,
+                    exitCode: 1,
+                    message: error.localizedDescription
+                )
+            )
+        }
+    }
+
+    func cancelActiveExternalEditSession() {
+        guard var session = activeExternalEditSession else {
+            return
+        }
+        session.completionState = .cancelled
+        activeExternalEditSession = nil
+        session.waitingClient?.complete(
+            ExternalEditSessionCompleteResponse(sessionId: session.sessionId, result: .cancelled, exitCode: 1)
+        )
+    }
+
+    private func completeExternalEditSession(
+        sessionId: String,
+        waitingClient: PromptTapIPCWaitingClient?,
+        result: ExternalEditCompletionState,
+        exitCode: Int,
+        message: String?
+    ) {
+        waitingClient?.complete(
+            ExternalEditSessionCompleteResponse(sessionId: sessionId, result: result, exitCode: exitCode, message: message)
+        )
+    }
+
+    private func openFromExternalEdit() {
+        NSApp.activate(ignoringOtherApps: true)
+
+        let mainWindows = NSApp.windows.filter { window in
+            window.identifier?.rawValue.hasPrefix("main") == true
+        }
+        if mainWindows.isEmpty {
+            shouldOpenMainWindow = true
+        } else {
+            for window in mainWindows {
+                window.collectionBehavior.insert(.moveToActiveSpace)
+                window.makeKeyAndOrderFront(nil)
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.focusEditor(enterVimInsertMode: false)
+        }
+    }
+
     func focusEditor(enterVimInsertMode: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -878,6 +1014,11 @@ final class PromptTapModel: ObservableObject {
     }
 
     func submitPrompt() {
+        if activeExternalEditSession != nil {
+            completeActiveExternalEditSessionBySaving()
+            return
+        }
+
         guard let previousApplication else {
             return
         }
@@ -923,6 +1064,33 @@ final class PromptTapModel: ObservableObject {
                 self.selection = [.history(entry.id)]
             }
         }
+    }
+
+    private static func detectNewline(in data: Data) -> String? {
+        guard let text = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        if text.contains("\r\n") {
+            return "\r\n"
+        }
+        if text.contains("\r") {
+            return "\r"
+        }
+        if text.contains("\n") {
+            return "\n"
+        }
+        return nil
+    }
+
+    private static func textForWriting(_ text: String, preserving newline: String) -> String {
+        guard newline != "\n" else {
+            return text
+        }
+
+        let normalized = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        return normalized.replacingOccurrences(of: "\n", with: newline)
     }
 
     func deleteHistory(at offsets: IndexSet) {

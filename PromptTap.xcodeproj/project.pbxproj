@@ -69,6 +69,7 @@
 				F3BABDF32FAB38020020B589 /* Sources */,
 				F3BABDF42FAB38020020B589 /* Frameworks */,
 				F3BABDF52FAB38020020B589 /* Resources */,
+				F35A00012FBBC00100A7C001 /* Install prompttap CLI */,
 			);
 			buildRules = (
 			);
@@ -132,6 +133,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F35A00012FBBC00100A7C001 /* Install prompttap CLI */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/PromptTapCLI/prompttap",
+			);
+			name = "Install prompttap CLI";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/MacOS/prompttap",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nCLI_PATH=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/MacOS/prompttap\"\ninstall -m 755 \"${SRCROOT}/PromptTapCLI/prompttap\" \"${CLI_PATH}\"\nif [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] && [ \"${CODE_SIGNING_ALLOWED:-YES}\" != \"NO\" ]; then\n  codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none \"${CLI_PATH}\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F3BABDF32FAB38020020B589 /* Sources */ = {

@@ -61,6 +61,19 @@
 - Command+Nで左ペインのListの次の項目を選択・表示する。一番下の項目なら「Current Prompt」に戻る
 - Command+Hで最新の履歴を選択しエディタにフォーカスする。すでに履歴が選択されている場合は1つ前の（より古い）履歴に移動する
   - 標準の「新規ウィンドウ (Command+N)」は無効化する
+- `PromptTap.app/Contents/MacOS/prompttap` にCLI executableを同梱する
+  - `/usr/local/bin/prompttap` などへsymlinkして使える
+  - `prompttap FILE` はGUIアプリにFILEを開かせて即時returnする
+  - `prompttap --wait FILE` はGUIアプリにFILEを開かせ、外部編集セッションが完了するまでblockする
+  - `export EDITOR="prompttap --wait"` / `export VISUAL="prompttap --wait"` として、Claude Code / Gemini CLI / Codex CLI や shell の `Ctrl+X Ctrl+E` / `Ctrl+G` workflow から利用できる
+  - FILEは絶対パスへ正規化し、存在しない場合は新規ファイルとして扱う。親ディレクトリが存在しない場合はCLI側でエラーにする
+  - CLIとGUI本体はUnix domain socketでJSON lineのrequest/responseを行う
+  - open-session requestは`type`, `sessionId`, `filePath`, `wait`を持つ
+  - session-complete responseは`type`, `sessionId`, `result`, `exitCode`を持つ
+  - GUI側は`ExternalEditSession`として`sessionId`, `filePath`, `originalMtime`, `originalExists`, `completionState`, `waitingClient`を管理する
+  - 外部編集セッション中のSubmitは、通常のpasteではなく対象ファイルへのUTF-8保存とCLIへの完了通知を行う
+  - 既存ファイルの改行コードは可能な範囲で保持する
+  - 外部編集セッション中にメインウィンドウを閉じた場合はcancelとしてCLIへ通知する
 
 ## UI
 
