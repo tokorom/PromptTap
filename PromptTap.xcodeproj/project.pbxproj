@@ -149,11 +149,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/MacOS/prompttap",
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Resources/prompttap",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nCLI_PATH=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/MacOS/prompttap\"\ninstall -m 755 \"${SRCROOT}/PromptTapCLI/prompttap\" \"${CLI_PATH}\"\nif [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] && [ \"${CODE_SIGNING_ALLOWED:-YES}\" != \"NO\" ]; then\n  codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none \"${CLI_PATH}\"\nfi\n";
+			shellScript = "set -e\nCLI_PATH=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Resources/prompttap\"\ninstall -m 755 \"${SRCROOT}/PromptTapCLI/prompttap\" \"${CLI_PATH}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

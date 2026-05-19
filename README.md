@@ -90,7 +90,7 @@ In the **Settings** (`Cmd + ,`), you can customize:
 PromptTap includes a `prompttap` CLI executable inside the app bundle:
 
 ```bash
-ln -s /Applications/PromptTap.app/Contents/MacOS/prompttap /usr/local/bin/prompttap
+ln -s /Applications/PromptTap.app/Contents/Resources/prompttap /usr/local/bin/prompttap
 export EDITOR="prompttap --wait"
 export VISUAL="prompttap --wait"
 ```
