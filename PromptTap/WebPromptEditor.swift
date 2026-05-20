@@ -42,6 +42,23 @@ final class PasteboardWebView: WKWebView {
     }
 }
 
+enum VimExCommand: String {
+    case write = "w"
+    case quit = "q"
+    case writeQuit = "wq"
+    case exit = "x"
+    case writeAll = "wa"
+    case quitAll = "qa"
+    case writeQuitAll = "wqa"
+    case forceQuit = "q!"
+    case forceQuitAll = "qa!"
+    case unknown
+
+    init(from string: String) {
+        self = VimExCommand(rawValue: string) ?? .unknown
+    }
+}
+
 struct WebPromptEditor: NSViewRepresentable {
     @Binding var text: String
     @Binding var isSelectionEmpty: Bool
@@ -181,6 +198,10 @@ extension WebPromptEditor {
                 let text = body["text"] as? String ?? ""
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
+            case "vimExCommand":
+                let command = body["command"] as? String ?? ""
+                let isDirty = body["isDirty"] as? Bool ?? false
+                handleVimExCommand(command: command, isDirty: isDirty)
             case "editorLoadFailed":
                 let message = body["message"] as? String ?? "Unknown error"
                 print("PromptTap editor fell back to textarea: \(message)")
@@ -214,6 +235,71 @@ extension WebPromptEditor {
 
         func callJavaScript(_ script: String) {
             webView?.evaluateJavaScript(script)
+        }
+
+        private func handleVimExCommand(command: String, isDirty: Bool) {
+            let exCommand = VimExCommand(from: command)
+            print("Vim Ex Command received: \(exCommand) (dirty: \(isDirty))")
+
+            switch exCommand {
+            case .write:
+                saveCurrentDocument()
+            case .quit:
+                if isDirty {
+                    showUnsavedChangesError()
+                } else {
+                    closeCurrentDocument()
+                }
+            case .writeQuit:
+                saveCurrentDocument()
+                closeCurrentDocument()
+            case .exit:
+                if isDirty {
+                    saveCurrentDocument()
+                }
+                closeCurrentDocument()
+            case .writeAll:
+                saveAllDocuments()
+            case .quitAll:
+                // Swift side decides if we can close all (e.g., check all dirty states)
+                closeAllDocuments()
+            case .writeQuitAll:
+                saveAllDocuments()
+                closeAllDocuments()
+            case .forceQuit:
+                closeCurrentDocument()
+            case .forceQuitAll:
+                closeAllDocuments()
+            case .unknown:
+                print("Warning: Unknown Vim Ex command received: \(command)")
+            }
+        }
+
+        // MARK: - Document Operations (Stubs)
+
+        private func saveCurrentDocument() {
+            // Implement native save logic here
+            print("Saving current document...")
+            parent.onSubmit() // Assuming onSubmit handles saving in this app
+            callJavaScript("window.promptTapEditor?.markClean();")
+        }
+
+        private func closeCurrentDocument() {
+            // Implement native close logic here
+            print("Closing current document...")
+        }
+
+        private func saveAllDocuments() {
+            print("Saving all documents...")
+        }
+
+        private func closeAllDocuments() {
+            print("Closing all documents...")
+        }
+
+        private func showUnsavedChangesError() {
+            print("Error: Unsaved changes. Use :q! to override.")
+            callJavaScript("window.promptTapEditor?.showVimMessage('No write since last change (add ! to override)', true);")
         }
 
         private func jsonString(_ string: String) -> String {
@@ -364,6 +450,8 @@ private extension WebPromptEditor {
         const notifySelection = () => {
           post({ action: "selectionChanged", isSelectionEmpty: !hasSelection() });
         };
+
+        let lastSavedContent = "";
 
         const notifyText = (value) => {
           if (!isInitialized && value === "") return;
@@ -529,6 +617,25 @@ private extension WebPromptEditor {
             vim
           } = modules;
 
+          const Vim = vim.Vim;
+          if (Vim && Vim.defineEx) {
+            const sendEx = (cmd) => {
+              window.webkit.messageHandlers.promptTap.postMessage({
+                action: "vimExCommand",
+                command: cmd,
+                isDirty: window.promptTapEditor?.isDirty() || false
+              });
+            };
+
+            Vim.defineEx("write", "w", () => sendEx("w"));
+            Vim.defineEx("quit", "q", (cm, params) => sendEx(params.commandName.endsWith("!") ? "q!" : "q"));
+            Vim.defineEx("wq", "", () => sendEx("wq"));
+            Vim.defineEx("exit", "x", () => sendEx("x"));
+            Vim.defineEx("wall", "wa", () => sendEx("wa"));
+            Vim.defineEx("qall", "qa", (cm, params) => sendEx(params.commandName.endsWith("!") ? "qa!" : "qa"));
+            Vim.defineEx("wqall", "wqa", () => sendEx("wqa"));
+          }
+
           vimCompartment = new Compartment();
           vimExtensionFactory = vim;
           lineWrappingCompartment = new Compartment();
@@ -623,6 +730,7 @@ private extension WebPromptEditor {
           setText(value) {
             isInitialized = true;
             pendingText = value;
+            lastSavedContent = value;
             applyState();
           },
           setVim(enabled) {
@@ -666,6 +774,24 @@ private extension WebPromptEditor {
             }
             applyState();
             notifySelection();
+          },
+          isDirty() {
+            const current = view ? view.state.doc.toString() : (textarea ? textarea.value : "");
+            return current !== lastSavedContent;
+          },
+          markClean() {
+            lastSavedContent = view ? view.state.doc.toString() : (textarea ? textarea.value : "");
+          },
+          showVimMessage(message, isError) {
+            const cm = view?.cm;
+            if (cm && cm.openNotification) {
+              const div = document.createElement("div");
+              if (isError) div.style.color = "red";
+              div.textContent = message;
+              cm.openNotification(div, { bottom: true, duration: 5000 });
+            } else {
+              console.log("Vim Message:", message);
+            }
           }
         };
 
