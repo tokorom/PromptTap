@@ -72,6 +72,8 @@ struct WebPromptEditor: NSViewRepresentable {
     let onSearchGlobal: () -> Void
     let onSearchTemplates: () -> Void
     let onSearchReserves: () -> Void
+    let onSave: () -> Void
+    let onClose: () -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -239,67 +241,18 @@ extension WebPromptEditor {
 
         private func handleVimExCommand(command: String, isDirty: Bool) {
             let exCommand = VimExCommand(from: command)
-            print("Vim Ex Command received: \(exCommand) (dirty: \(isDirty))")
+            print("Vim Ex Command received: \(exCommand)")
 
             switch exCommand {
-            case .write:
-                saveCurrentDocument()
-            case .quit:
-                if isDirty {
-                    showUnsavedChangesError()
-                } else {
-                    closeCurrentDocument()
-                }
-            case .writeQuit:
-                saveCurrentDocument()
-                closeCurrentDocument()
-            case .exit:
-                if isDirty {
-                    saveCurrentDocument()
-                }
-                closeCurrentDocument()
-            case .writeAll:
-                saveAllDocuments()
-            case .quitAll:
-                // Swift side decides if we can close all (e.g., check all dirty states)
-                closeAllDocuments()
-            case .writeQuitAll:
-                saveAllDocuments()
-                closeAllDocuments()
-            case .forceQuit:
-                closeCurrentDocument()
-            case .forceQuitAll:
-                closeAllDocuments()
+            case .write, .writeAll:
+                parent.onSubmit()
+            case .exit, .quit, .quitAll, .forceQuit, .forceQuitAll:
+                parent.onClose()
+            case .writeQuit, .writeQuitAll:
+                parent.onSubmit()
             case .unknown:
                 print("Warning: Unknown Vim Ex command received: \(command)")
             }
-        }
-
-        // MARK: - Document Operations (Stubs)
-
-        private func saveCurrentDocument() {
-            // Implement native save logic here
-            print("Saving current document...")
-            parent.onSubmit() // Assuming onSubmit handles saving in this app
-            callJavaScript("window.promptTapEditor?.markClean();")
-        }
-
-        private func closeCurrentDocument() {
-            // Implement native close logic here
-            print("Closing current document...")
-        }
-
-        private func saveAllDocuments() {
-            print("Saving all documents...")
-        }
-
-        private func closeAllDocuments() {
-            print("Closing all documents...")
-        }
-
-        private func showUnsavedChangesError() {
-            print("Error: Unsaved changes. Use :q! to override.")
-            callJavaScript("window.promptTapEditor?.showVimMessage('No write since last change (add ! to override)', true);")
         }
 
         private func jsonString(_ string: String) -> String {
@@ -528,13 +481,13 @@ private extension WebPromptEditor {
                     const target = view.contentDOM || view.dom;
                     if (target) {
                       target.focus();
-                      target.dispatchEvent(new KeyboardEvent("keydown", { 
-                        key: "i", 
-                        keyCode: 73, 
-                        code: "KeyI", 
-                        while: 73, 
-                        bubbles: true, 
-                        cancelable: true 
+                      target.dispatchEvent(new KeyboardEvent("keydown", {
+                        key: "i",
+                        keyCode: 73,
+                        code: "KeyI",
+                        while: 73,
+                        bubbles: true,
+                        cancelable: true
                       }));
                     }
                   }
