@@ -39,6 +39,9 @@ PromptTapはスピードを重視して構築されています。UIではなく
 | --- | --- |
 | `Command` 2回 | PromptTapを開く / ターゲットアプリに戻る |
 | `Cmd + S` | **送信 (Submit)**: 前のアプリに戻ってプロンプトを貼り付ける |
+| `Shift + Cmd + S` | **リザーブまたはテンプレートとして保存**: 現在のプロンプトをリザーブやテンプレートとして再利用可能な形で保存 |
+| `Shift + Cmd + P` | **エディタ内容を現在のプロンプトへ送信** |
+| `Shift + Cmd + N` | **新しい現在のプロンプト**: 新しい現在のプロンプトを開く |
 | `Cmd + C` | **コピー**: プロンプト全文をクリップボードにコピー |
 | `Cmd + F` | **グローバル検索**: テンプレート、リザーブ、履歴を横断検索 |
 | `Cmd + N` | **次のアイテム**: サイドバーのアイテムを順に切り替え |
@@ -90,7 +93,7 @@ brew install --cask prompttap
 PromptTapのアプリバンドル内には、 `prompttap` CLI 実行ファイルが含まれています：
 
 ```bash
-ln -s /Applications/PromptTap.app/Contents/Resources/prompttap /usr/local/bin/prompttap
+# ln -s /Applications/PromptTap.app/Contents/Resources/prompttap /usr/local/bin/prompttap
 export EDITOR="prompttap --wait"
 export VISUAL="prompttap --wait"
 ```
@@ -102,6 +105,18 @@ prompttap --wait /path/to/file
 ```
 
 PromptTapはファイルをGUIエディタで開き、 `--wait` が有効な間は呼び出し元のシェルをブロックし、アプリで保存して閉じると復帰します。これは Claude Code, Gemini CLI, Codex CLI や、シェルの `Ctrl+X Ctrl+E` / `Ctrl+G` などのワークフローでの利用を想定しています。
+
+グローバルな `EDITOR` や `VISUAL` 環境変数を変更したくない場合は、コマンドごとに一時的に以下のように指定して利用できます：
+
+```bash
+VISUAL="prompttap --wait" claude
+```
+```bash
+VISUAL="prompttap --wait" codex
+```
+```bash
+VISUAL="prompttap --wait" gemini
+```
 
 ## Changelog
 

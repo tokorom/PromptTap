@@ -39,6 +39,9 @@ PromptTap is built for speed. Focus on your thoughts, not the UI:
 | --- | --- |
 | `Double Command` | Open PromptTap / Toggle back to target app |
 | `Cmd + S` | **Submit**: Return to previous app and paste prompt |
+| `Shift + Cmd + S` | **Save as Reserve or Template**: Save the current prompt for reuse as a Reserve or Template |
+| `Shift + Cmd + P` | **Send Editor contents to Current Prompt** |
+| `Shift + Cmd + N` | **New Current Prompt**: Open a new Current Prompt |
 | `Cmd + C` | **Copy**: Copy full prompt to clipboard |
 | `Cmd + F` | **Global Search**: Search across Templates, Reserves, and History |
 | `Cmd + N` | **Next Item**: Cycle forward through sidebar items |
@@ -90,7 +93,7 @@ In the **Settings** (`Cmd + ,`), you can customize:
 PromptTap includes a `prompttap` CLI executable inside the app bundle:
 
 ```bash
-ln -s /Applications/PromptTap.app/Contents/Resources/prompttap /usr/local/bin/prompttap
+# ln -s /Applications/PromptTap.app/Contents/Resources/prompttap /usr/local/bin/prompttap
 export EDITOR="prompttap --wait"
 export VISUAL="prompttap --wait"
 ```
@@ -102,6 +105,18 @@ prompttap --wait /path/to/file
 ```
 
 PromptTap opens the file in the GUI editor, blocks the calling shell while `--wait` is active, and returns after you save and close from the app. This is intended for Claude Code, Gemini CLI, Codex CLI, and shell workflows such as `Ctrl+X Ctrl+E` / `Ctrl+G`.
+
+If you don't want to change your global `EDITOR`/`VISUAL`, you can temporarily set them for a single command invocation like this:
+
+```bash
+VISUAL="prompttap --wait" claude
+```
+```bash
+VISUAL="prompttap --wait" codex
+```
+```bash
+VISUAL="prompttap --wait" gemini
+```
 
 ## Changelog
 
