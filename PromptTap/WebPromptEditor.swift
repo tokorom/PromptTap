@@ -458,6 +458,34 @@ private extension WebPromptEditor {
             throw new Error("PromptTapEditorBundle.js was not loaded");
           }
 
+          // System Clipboard Adapter
+          window.SystemClipboard = {
+            async readText() {
+              if (typeof navigator === "undefined" || !navigator.clipboard || !navigator.clipboard.readText) {
+                return null;
+              }
+              try {
+                return await navigator.clipboard.readText();
+              } catch (e) {
+                console.warn("Vim clipboard read failed:", e);
+                return null;
+              }
+            },
+            async writeText(text) {
+              if (typeof navigator === "undefined" || !navigator.clipboard || !navigator.clipboard.writeText) {
+                return false;
+              }
+              try {
+                await navigator.clipboard.writeText(text);
+                return true;
+              } catch (e) {
+                console.warn("Vim clipboard write failed:", e);
+                return false;
+              }
+            }
+          };
+          window.vimClipboard = "unnamedplus";
+
           const {
             EditorState,
             Compartment,
