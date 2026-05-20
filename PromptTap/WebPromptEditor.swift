@@ -72,7 +72,6 @@ struct WebPromptEditor: NSViewRepresentable {
     let onSearchGlobal: () -> Void
     let onSearchTemplates: () -> Void
     let onSearchReserves: () -> Void
-    let onSave: () -> Void
     let onClose: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -553,6 +552,35 @@ private extension WebPromptEditor {
           };
           window.vimClipboard = "unnamedplus";
 
+          const Vim = modules.Vim;
+          if (Vim && typeof Vim.defineEx === "function") {
+            const sendEx = (cmd) => {
+              window.webkit.messageHandlers.promptTap.postMessage({
+                action: "vimExCommand",
+                command: cmd,
+                isDirty: (window.promptTapEditor && typeof window.promptTapEditor.isDirty === "function") ? window.promptTapEditor.isDirty() : false
+              });
+            };
+
+            try {
+              Vim.defineEx("write", "w", () => sendEx("w"));
+              Vim.defineEx("quit", "q", (cm, params) => {
+                const name = (params && params.commandName) || "q";
+                sendEx(name.endsWith("!") ? "q!" : "q");
+              });
+              Vim.defineEx("wq", "", () => sendEx("wq"));
+              Vim.defineEx("exit", "x", () => sendEx("x"));
+              Vim.defineEx("wall", "wa", () => sendEx("wa"));
+              Vim.defineEx("qall", "qa", (cm, params) => {
+                const name = (params && params.commandName) || "qa";
+                sendEx(name.endsWith("!") ? "qa!" : "qa");
+              });
+              Vim.defineEx("wqall", "wqa", () => sendEx("wqa"));
+            } catch (e) {
+              console.warn("Vim defineEx failed:", e);
+            }
+          }
+
           const {
             EditorState,
             Compartment,
@@ -569,25 +597,6 @@ private extension WebPromptEditor {
             markdown,
             vim
           } = modules;
-
-          const Vim = vim.Vim;
-          if (Vim && Vim.defineEx) {
-            const sendEx = (cmd) => {
-              window.webkit.messageHandlers.promptTap.postMessage({
-                action: "vimExCommand",
-                command: cmd,
-                isDirty: window.promptTapEditor?.isDirty() || false
-              });
-            };
-
-            Vim.defineEx("write", "w", () => sendEx("w"));
-            Vim.defineEx("quit", "q", (cm, params) => sendEx(params.commandName.endsWith("!") ? "q!" : "q"));
-            Vim.defineEx("wq", "", () => sendEx("wq"));
-            Vim.defineEx("exit", "x", () => sendEx("x"));
-            Vim.defineEx("wall", "wa", () => sendEx("wa"));
-            Vim.defineEx("qall", "qa", (cm, params) => sendEx(params.commandName.endsWith("!") ? "qa!" : "qa"));
-            Vim.defineEx("wqall", "wqa", () => sendEx("wqa"));
-          }
 
           vimCompartment = new Compartment();
           vimExtensionFactory = vim;

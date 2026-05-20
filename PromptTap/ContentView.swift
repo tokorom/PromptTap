@@ -743,24 +743,17 @@ struct ContentView: View {
                     } else if model.isHistorySelected {
                         model.saveHistoryItem()
                     } else {
-                        model.submitPrompt()
+                        if model.canSubmit {
+                            model.submitPrompt()
+                        } else {
+                            showingCurrentPromptSaveDestination = true
+                        }
                     }
                 },
                 onCopyAll: model.copyPrompt,
                 onSearchGlobal: model.requestGlobalSearch,
                 onSearchTemplates: model.requestTemplateSearch,
                 onSearchReserves: model.requestReserveSearch,
-                onSave: {
-                    if model.isTemplateSelected {
-                        model.saveTemplate()
-                    } else if model.isReserveSelected {
-                        model.saveReserve()
-                    } else if model.isHistorySelected {
-                        model.saveHistoryItem()
-                    } else {
-                        model.submitPrompt()
-                    }
-                },
                 onClose: {
                     NSApp.sendAction(#selector(NSWindow.performClose), to: nil, from: nil)
                 }
