@@ -1,7 +1,4 @@
 ### Added
-- Support CUI command
-- Automatically set Submit target to the previous application when opening the app without a hotkey if unset.
-- Auto-save unsaved prompt to History when opening a file via CLI.
+- System clipboard synchronization for Vim mode.
+- Support for Vim Ex commands (:w, :q, :wq, :x, :wa, :qa, :wqa, :q!) delegated to native app handling.
 
-### Fixed
-- Improved detection of the target application when opening PromptTap via the Dock or non-hotkey methods.
