@@ -172,6 +172,15 @@ extension WebPromptEditor {
                 parent.onSearchTemplates()
             case "searchReserves":
                 parent.onSearchReserves()
+            case "readClipboard":
+                let requestId = body["requestId"] as? String ?? ""
+                let text = NSPasteboard.general.string(forType: .string) ?? ""
+                let script = "window._onClipboardRead(\(jsonString(requestId)), \(jsonString(text)));"
+                webView?.evaluateJavaScript(script)
+            case "writeClipboard":
+                let text = body["text"] as? String ?? ""
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(text, forType: .string)
             case "editorLoadFailed":
                 let message = body["message"] as? String ?? "Unknown error"
                 print("PromptTap editor fell back to textarea: \(message)")
@@ -205,6 +214,14 @@ extension WebPromptEditor {
 
         func callJavaScript(_ script: String) {
             webView?.evaluateJavaScript(script)
+        }
+
+        private func jsonString(_ string: String) -> String {
+            guard let data = try? JSONEncoder().encode(string),
+                  let json = String(data: data, encoding: .utf8) else {
+                return "\"\""
+            }
+            return json
         }
     }
 }
@@ -458,30 +475,39 @@ private extension WebPromptEditor {
             throw new Error("PromptTapEditorBundle.js was not loaded");
           }
 
-          // System Clipboard Adapter
+          // System Clipboard Adapter (Native Bridge)
+          window._clipboardCallbacks = {};
+          window._onClipboardRead = (requestId, text) => {
+            if (window._clipboardCallbacks[requestId]) {
+              window._clipboardCallbacks[requestId](text);
+              delete window._clipboardCallbacks[requestId];
+            }
+          };
+
           window.SystemClipboard = {
             async readText() {
-              if (typeof navigator === "undefined" || !navigator.clipboard || !navigator.clipboard.readText) {
-                return null;
-              }
-              try {
-                return await navigator.clipboard.readText();
-              } catch (e) {
-                console.warn("Vim clipboard read failed:", e);
-                return null;
-              }
+              return new Promise((resolve) => {
+                const requestId = Math.random().toString(36).substring(7);
+                window._clipboardCallbacks[requestId] = resolve;
+                window.webkit.messageHandlers.promptTap.postMessage({
+                  action: "readClipboard",
+                  requestId: requestId
+                });
+                // Fallback timeout
+                setTimeout(() => {
+                  if (window._clipboardCallbacks[requestId]) {
+                    window._clipboardCallbacks[requestId](null);
+                    delete window._clipboardCallbacks[requestId];
+                  }
+                }, 1000);
+              });
             },
             async writeText(text) {
-              if (typeof navigator === "undefined" || !navigator.clipboard || !navigator.clipboard.writeText) {
-                return false;
-              }
-              try {
-                await navigator.clipboard.writeText(text);
-                return true;
-              } catch (e) {
-                console.warn("Vim clipboard write failed:", e);
-                return false;
-              }
+              window.webkit.messageHandlers.promptTap.postMessage({
+                action: "writeClipboard",
+                text: text
+              });
+              return true;
             }
           };
           window.vimClipboard = "unnamedplus";
