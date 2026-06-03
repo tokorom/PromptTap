@@ -1,4 +1,4 @@
 ### Added
-- System clipboard synchronization for Vim mode.
-- Support for Vim Ex commands (:w, :q, :wq, :x, :wa, :qa, :wqa, :q!) delegated to native app handling.
 
+### Fixed
+- Fixed a conflict where the global copy shortcut (Cmd+C) intercepted the native copy command when text was selected in the editor.
