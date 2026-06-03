@@ -83,4 +83,3 @@ final class PromptTapIPCWaitingClient: @unchecked Sendable {
         try? fileHandle.close()
     }
 }
-

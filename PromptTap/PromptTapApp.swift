@@ -17,9 +17,9 @@ struct PromptTapApp: App {
     var body: some Scene {
         let title: String = {
             #if DEBUG
-            return "Prompt Tap DEVELOPMENT"
+                return "Prompt Tap DEVELOPMENT"
             #else
-            return "Prompt Tap"
+                return "Prompt Tap"
             #endif
         }()
 
@@ -32,16 +32,16 @@ struct PromptTapApp: App {
                     appDelegate.configure(model: model, settings: settings)
                 }
                 #if DEBUG
-                .toolbarBackground(.red.opacity(0.5), for: .windowToolbar)
-                .toolbarBackground(.visible, for: .windowToolbar)
+                    .toolbarBackground(.red.opacity(0.5), for: .windowToolbar)
+                    .toolbarBackground(.visible, for: .windowToolbar)
                 #endif
         }
         #if DEBUG
-        .windowToolbarStyle(.unified)
+            .windowToolbarStyle(.unified)
         #endif
         .commands {
             PromptCommands(model: model, settings: settings)
-            CommandGroup(replacing: .newItem) { }
+            CommandGroup(replacing: .newItem) {}
             CommandGroup(replacing: .help) {
                 Button("PromptTap Help") {
                     if let url = URL(string: "https://github.com/tokorom/PromptTap/blob/main/README.md") {
@@ -118,7 +118,10 @@ struct PromptCommands: Commands {
             Button("Copy") {
                 model.copyPrompt()
             }
-            .appKeyboardShortcut(settings.shortcut(for: .copy))
+            .appKeyboardShortcut(
+                settings.shortcut(for: .copy),
+                isEnabled: model.isEditorSelectionEmpty && !model.promptText.isEmpty
+            )
             .disabled(!model.isEditorSelectionEmpty || model.promptText.isEmpty)
 
             Divider()

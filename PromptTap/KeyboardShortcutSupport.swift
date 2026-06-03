@@ -50,7 +50,12 @@ struct WebShortcutDescriptor: Encodable, Equatable {
 }
 
 extension View {
-    func appKeyboardShortcut(_ hotkey: CustomHotkey) -> some View {
-        keyboardShortcut(hotkey.swiftUIKeyEquivalent, modifiers: hotkey.swiftUIModifiers)
+    @ViewBuilder
+    func appKeyboardShortcut(_ hotkey: CustomHotkey, isEnabled: Bool = true) -> some View {
+        if isEnabled {
+            keyboardShortcut(hotkey.swiftUIKeyEquivalent, modifiers: hotkey.swiftUIModifiers)
+        } else {
+            self
+        }
     }
 }

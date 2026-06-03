@@ -31,22 +31,22 @@ final class HotkeyController {
         stop()
 
         #if !DEBUG
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        let isTrusted = AXIsProcessTrustedWithOptions(options)
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            let isTrusted = AXIsProcessTrustedWithOptions(options)
 
-        if isTrusted {
-            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-                Task { @MainActor in
-                    self?.handle(event)
+            if isTrusted {
+                globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+                    Task { @MainActor in
+                        self?.handle(event)
+                    }
+                }
+
+                globalKeyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                    Task { @MainActor in
+                        self?.handleKeyDown(event)
+                    }
                 }
             }
-
-            globalKeyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                Task { @MainActor in
-                    self?.handleKeyDown(event)
-                }
-            }
-        }
         #endif
 
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in

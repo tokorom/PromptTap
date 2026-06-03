@@ -73,10 +73,11 @@ struct CustomHotkey: Codable, Equatable {
 
     private static func characterKeyName(for event: NSEvent) -> String {
         guard let characters = event.charactersIgnoringModifiers,
-              characters.count == 1,
-              let scalar = characters.unicodeScalars.first,
-              !CharacterSet.whitespacesAndNewlines.contains(scalar),
-              !CharacterSet.controlCharacters.contains(scalar) else {
+            characters.count == 1,
+            let scalar = characters.unicodeScalars.first,
+            !CharacterSet.whitespacesAndNewlines.contains(scalar),
+            !CharacterSet.controlCharacters.contains(scalar)
+        else {
             return ""
         }
         return characters.uppercased()
@@ -343,23 +344,24 @@ final class AppSettings: ObservableObject {
         hotkey = rawHotkey.flatMap(HotkeyTrigger.init(rawValue:)) ?? .doubleCommand
 
         if let data = userDefaults.data(forKey: Self.customHotkeyKey),
-           let decoded = try? JSONDecoder().decode(CustomHotkey.self, from: data) {
+            let decoded = try? JSONDecoder().decode(CustomHotkey.self, from: data)
+        {
             customHotkey = decoded
         } else {
             customHotkey = .defaultValue
         }
 
         usesVimKeyBindings = userDefaults.bool(forKey: Self.vimKeyBindingsKey)
-        
+
         var limit = userDefaults.integer(forKey: Self.historyLimitKey)
         if limit == 0 {
             limit = 100
         }
         historyLimit = limit
-        
+
         launchAtLogin = userDefaults.bool(forKey: Self.launchAtLoginKey)
         sendEnterAfterSubmit = userDefaults.bool(forKey: Self.sendEnterAfterSubmitKey)
-        
+
         if userDefaults.object(forKey: Self.lineWrappingKey) == nil {
             lineWrapping = true
         } else {
@@ -379,7 +381,8 @@ final class AppSettings: ObservableObject {
         var shortcuts = KeyboardShortcutAction.defaultShortcuts
 
         if let data = userDefaults.data(forKey: keyboardShortcutsKey),
-           let decoded = try? JSONDecoder().decode([String: CustomHotkey].self, from: data) {
+            let decoded = try? JSONDecoder().decode([String: CustomHotkey].self, from: data)
+        {
             for (rawAction, hotkey) in decoded {
                 guard let action = KeyboardShortcutAction(rawValue: rawAction) else {
                     continue

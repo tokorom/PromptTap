@@ -521,8 +521,9 @@ struct ContentView: View {
                         .font(.headline)
                         .disabled(true)
                 } else if let lastSelection = model.selection.first,
-                   case .history(let id) = lastSelection,
-                   let entry = model.history.first(where: { $0.id == id }) {
+                    case .history(let id) = lastSelection,
+                    let entry = model.history.first(where: { $0.id == id })
+                {
                     Text(entry.date.formatted(date: .numeric, time: .shortened))
                         .font(.headline)
                 } else {
@@ -661,8 +662,9 @@ struct ContentView: View {
                     .padding(.trailing, 8)
                     .zIndex(1)
                 } else if let lastSelection = model.selection.first,
-                   case .history(let id) = lastSelection,
-                   let entry = model.history.first(where: { $0.id == id }) {
+                    case .history(let id) = lastSelection,
+                    let entry = model.history.first(where: { $0.id == id })
+                {
                     HStack(spacing: 8) {
                         Button {
                             model.revealHistoryInFinder()
@@ -798,7 +800,10 @@ struct ContentView: View {
                     Text("Copy")
                 }
             }
-            .appKeyboardShortcut(settings.shortcut(for: .copy))
+            .appKeyboardShortcut(
+                settings.shortcut(for: .copy),
+                isEnabled: model.isEditorSelectionEmpty && !model.isCopying && !model.promptText.isEmpty
+            )
             .disabled(!model.isEditorSelectionEmpty || model.isCopying || model.promptText.isEmpty)
             .shortcutHelp(
                 model.isEditorSelectionEmpty ? "Copy the full prompt" : "Use the editor selection copy",
@@ -1005,7 +1010,7 @@ private struct CurrentPromptSaveDestinationPanel: View {
             .destination(.template),
             .destination(.reserve),
             .destination(.history),
-            .cancel
+            .cancel,
         ]
         let currentIndex = focusedOption.flatMap { options.firstIndex(of: $0) } ?? options.count - 1
         let nextIndex = (currentIndex + delta + options.count) % options.count
@@ -1418,8 +1423,8 @@ private struct ReserveSearchKeyMonitor: NSViewRepresentable {
     }
 }
 
-private extension View {
-    func shortcutHelp(
+extension View {
+    fileprivate func shortcutHelp(
         _ message: String,
         shortcut: String,
         placement: ShortcutHelpPlacement = .trailing,
@@ -1467,8 +1472,8 @@ private struct ShortcutHelpModifier: ViewModifier {
     }
 }
 
-private extension ShortcutHelpPlacement {
-    var alignment: Alignment {
+extension ShortcutHelpPlacement {
+    fileprivate var alignment: Alignment {
         switch self {
         case .trailing:
             .trailing
@@ -1481,7 +1486,7 @@ private extension ShortcutHelpPlacement {
         }
     }
 
-    func xOffset(for size: ShortcutHelpSize) -> CGFloat {
+    fileprivate func xOffset(for size: ShortcutHelpSize) -> CGFloat {
         switch self {
         case .trailing:
             size.offsetDistance
@@ -1492,7 +1497,7 @@ private extension ShortcutHelpPlacement {
         }
     }
 
-    func yOffset(for size: ShortcutHelpSize) -> CGFloat {
+    fileprivate func yOffset(for size: ShortcutHelpSize) -> CGFloat {
         switch self {
         case .trailing, .leading:
             0
@@ -1503,7 +1508,7 @@ private extension ShortcutHelpPlacement {
         }
     }
 
-    var scaleAnchor: UnitPoint {
+    fileprivate var scaleAnchor: UnitPoint {
         switch self {
         case .trailing:
             .leading
@@ -1517,8 +1522,8 @@ private extension ShortcutHelpPlacement {
     }
 }
 
-private extension ShortcutHelpSize {
-    var font: Font {
+extension ShortcutHelpSize {
+    fileprivate var font: Font {
         switch self {
         case .regular:
             .system(.headline, design: .rounded).weight(.bold)
@@ -1527,7 +1532,7 @@ private extension ShortcutHelpSize {
         }
     }
 
-    var horizontalPadding: CGFloat {
+    fileprivate var horizontalPadding: CGFloat {
         switch self {
         case .regular:
             8
@@ -1536,7 +1541,7 @@ private extension ShortcutHelpSize {
         }
     }
 
-    var verticalPadding: CGFloat {
+    fileprivate var verticalPadding: CGFloat {
         switch self {
         case .regular:
             4
@@ -1545,7 +1550,7 @@ private extension ShortcutHelpSize {
         }
     }
 
-    var offsetDistance: CGFloat {
+    fileprivate var offsetDistance: CGFloat {
         switch self {
         case .regular:
             50
@@ -2112,17 +2117,20 @@ private struct GlobalSearchCandidate: Identifiable {
 
         var allCandidates: [GlobalSearchCandidate] = []
 
-        allCandidates.append(contentsOf: templates.compactMap { template in
-            rank(needle: needle, name: template.name, text: template.text).map { GlobalSearchCandidate(result: .template(template), matchRank: $0) }
-        })
+        allCandidates.append(
+            contentsOf: templates.compactMap { template in
+                rank(needle: needle, name: template.name, text: template.text).map { GlobalSearchCandidate(result: .template(template), matchRank: $0) }
+            })
 
-        allCandidates.append(contentsOf: reserves.compactMap { reserve in
-            rank(needle: needle, name: reserve.name, text: reserve.text).map { GlobalSearchCandidate(result: .reserve(reserve), matchRank: $0) }
-        })
+        allCandidates.append(
+            contentsOf: reserves.compactMap { reserve in
+                rank(needle: needle, name: reserve.name, text: reserve.text).map { GlobalSearchCandidate(result: .reserve(reserve), matchRank: $0) }
+            })
 
-        allCandidates.append(contentsOf: history.compactMap { entry in
-            rank(needle: needle, name: "", text: entry.text).map { GlobalSearchCandidate(result: .history(entry), matchRank: $0) }
-        })
+        allCandidates.append(
+            contentsOf: history.compactMap { entry in
+                rank(needle: needle, name: "", text: entry.text).map { GlobalSearchCandidate(result: .history(entry), matchRank: $0) }
+            })
 
         return allCandidates.sorted { lhs, rhs in
             let sectionOrder = ["Templates": 0, "Reserves": 1, "History": 2]

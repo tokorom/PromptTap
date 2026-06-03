@@ -366,7 +366,8 @@ final class PromptTapModel: ObservableObject {
     func saveTemplate(shouldUpdateSelection: Bool = true) {
         guard selection.count == 1, let first = selection.first else { return }
 
-        let finalName = templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let finalName =
+            templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? generateName(from: promptText)
             : templateNameBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -917,7 +918,7 @@ final class PromptTapModel: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             if enterVimInsertMode {
-                self.focusRequestID = (self.focusRequestID % 1000) + 1001 // Use 1001+ for insert mode
+                self.focusRequestID = (self.focusRequestID % 1000) + 1001  // Use 1001+ for insert mode
             } else {
                 self.focusRequestID = (self.focusRequestID % 1000) + 1
             }
@@ -1110,7 +1111,8 @@ final class PromptTapModel: ObservableObject {
             return text
         }
 
-        let normalized = text
+        let normalized =
+            text
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
         return normalized.replacingOccurrences(of: "\n", with: newline)

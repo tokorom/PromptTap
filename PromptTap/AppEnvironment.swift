@@ -6,9 +6,9 @@ enum AppEnvironment: CustomStringConvertible {
 
     static let current: AppEnvironment = {
         #if DEBUG
-        .development
+            .development
         #else
-        .production
+            .production
         #endif
     }()
 

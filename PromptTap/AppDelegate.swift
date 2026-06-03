@@ -58,7 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak model] notification in
             guard let window = notification.object as? NSWindow,
-                  window.identifier?.rawValue.hasPrefix("main") == true else {
+                window.identifier?.rawValue.hasPrefix("main") == true
+            else {
                 return
             }
             Task { @MainActor [weak model] in
